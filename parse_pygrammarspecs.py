@@ -89,11 +89,11 @@ def fprint(fname, fargs):
         print("(defsyntax " + fname + " [" + " ".join(keylist) + "]")
         print("  \"Args:")
         print("      " + "\n      ".join(docstring) + "\"")
-        print("  )")
+        print("  None)")
     else:
         # Singleton class
         print("(defsyntax " + fname + " []")
-        print("  \"Singleton class\")")
+        print("  \"Singleton class\" None)")
     print()
 
 print("; Auto-generated template\n")

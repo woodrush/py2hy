@@ -6,22 +6,22 @@
 (defsyntax Module [:body]
   "Args:
       [list] :body (stmt*)"
-  )
+  None)
 
 (defsyntax Interactive [:body]
   "Args:
       [list] :body (stmt*)"
-  )
+  None)
 
 (defsyntax Expression [:body]
   "Args:
       :body (expr)"
-  )
+  None)
 
 (defsyntax Suite [:body]
   "Args:
       [list] :body (stmt*)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -36,7 +36,7 @@
       [optional] :returns (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax AsyncFunctionDef [:name :args :body :decorator_list :returns :lineno :col_offset]
   "Args:
@@ -47,7 +47,7 @@
       [optional] :returns (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax ClassDef [:name :bases :keywords :body :decorator_list :lineno :col_offset]
   "Args:
@@ -58,21 +58,21 @@
       [list] :decorator_list (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Return [:value :lineno :col_offset]
   "Args:
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Delete [:targets :lineno :col_offset]
   "Args:
       [list] :targets (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Assign [:targets :value :lineno :col_offset]
   "Args:
@@ -80,7 +80,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
@@ -89,7 +89,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax AnnAssign [:target :annotation :value :simple :lineno :col_offset]
   "Args:
@@ -99,7 +99,7 @@
       :simple (int)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax For [:target :iter :body :orelse :lineno :col_offset]
   "Args:
@@ -109,7 +109,7 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax AsyncFor [:target :iter :body :orelse :lineno :col_offset]
   "Args:
@@ -119,7 +119,7 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax While [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -128,7 +128,7 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax If [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -137,7 +137,7 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -145,7 +145,7 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax AsyncWith [:items :body :lineno :col_offset]
   "Args:
@@ -153,7 +153,7 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Raise [:exc :cause :lineno :col_offset]
   "Args:
@@ -161,7 +161,7 @@
       [optional] :cause (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Try [:body :handlers :orelse :finalbody :lineno :col_offset]
   "Args:
@@ -171,7 +171,7 @@
       [list] :finalbody (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Assert [:test :msg :lineno :col_offset]
   "Args:
@@ -179,14 +179,14 @@
       [optional] :msg (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Import [:names :lineno :col_offset]
   "Args:
       [list] :names (alias*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax ImportFrom [:module :names :level :lineno :col_offset]
   "Args:
@@ -195,46 +195,46 @@
       [optional] :level (int?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Global [:names :lineno :col_offset]
   "Args:
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Nonlocal [:names :lineno :col_offset]
   "Args:
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Expr [:value :lineno :col_offset]
   "Args:
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Pass [:lineno :col_offset]
   "Args:
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Break [:lineno :col_offset]
   "Args:
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Continue [:lineno :col_offset]
   "Args:
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -246,7 +246,7 @@
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax BinOp [:left :op :right :lineno :col_offset]
   "Args:
@@ -255,7 +255,7 @@
       :right (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax UnaryOp [:op :operand :lineno :col_offset]
   "Args:
@@ -263,7 +263,7 @@
       :operand (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Lambda [:args :body :lineno :col_offset]
   "Args:
@@ -271,7 +271,7 @@
       :body (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax IfExp [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -280,7 +280,7 @@
       :orelse (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Dict [:keys :values :lineno :col_offset]
   "Args:
@@ -288,14 +288,14 @@
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Set [:elts :lineno :col_offset]
   "Args:
       [list] :elts (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax ListComp [:elt :generators :lineno :col_offset]
   "Args:
@@ -303,7 +303,7 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax SetComp [:elt :generators :lineno :col_offset]
   "Args:
@@ -311,7 +311,7 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax DictComp [:key :value :generators :lineno :col_offset]
   "Args:
@@ -320,7 +320,7 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax GeneratorExp [:elt :generators :lineno :col_offset]
   "Args:
@@ -328,28 +328,28 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Await [:value :lineno :col_offset]
   "Args:
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Yield [:value :lineno :col_offset]
   "Args:
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax YieldFrom [:value :lineno :col_offset]
   "Args:
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Compare [:left :ops :comparators :lineno :col_offset]
   "Args:
@@ -358,7 +358,7 @@
       [list] :comparators (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Call [:func :args :keywords :lineno :col_offset]
   "Args:
@@ -367,21 +367,21 @@
       [list] :keywords (keyword*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Num [:n :lineno :col_offset]
   "Args:
       :n (object)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Str [:s :lineno :col_offset]
   "Args:
       :s (string)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax FormattedValue [:value :conversion :format_spec :lineno :col_offset]
   "Args:
@@ -390,41 +390,41 @@
       [optional] :format_spec (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax JoinedStr [:values :lineno :col_offset]
   "Args:
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Bytes [:s :lineno :col_offset]
   "Args:
       :s (bytes)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax NameConstant [:value :lineno :col_offset]
   "Args:
       :value (singleton)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Ellipsis [:lineno :col_offset]
   "Args:
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Constant [:value :lineno :col_offset]
   "Args:
       :value (constant)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Attribute [:value :attr :ctx :lineno :col_offset]
   "Args:
@@ -433,7 +433,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Subscript [:value :slice :ctx :lineno :col_offset]
   "Args:
@@ -442,7 +442,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Starred [:value :ctx :lineno :col_offset]
   "Args:
@@ -450,7 +450,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Name [:id :ctx :lineno :col_offset]
   "Args:
@@ -458,7 +458,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax List [:elts :ctx :lineno :col_offset]
   "Args:
@@ -466,7 +466,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 (defsyntax Tuple [:elts :ctx :lineno :col_offset]
   "Args:
@@ -474,29 +474,29 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 
 ;==============================================================================
 ; Classgroup `expr_context`
 ;==============================================================================
 (defsyntax Load []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Store []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Del []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax AugLoad []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax AugStore []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Param []
-  "Singleton class")
+  "Singleton class" None)
 
 
 ;==============================================================================
@@ -507,120 +507,120 @@
       [optional] :lower (expr?)
       [optional] :upper (expr?)
       [optional] :step (expr?)"
-  )
+  None)
 
 (defsyntax ExtSlice [:dims]
   "Args:
       [list] :dims (slice*)"
-  )
+  None)
 
 (defsyntax Index [:value]
   "Args:
       :value (expr)"
-  )
+  None)
 
 
 ;==============================================================================
 ; Classgroup `boolop`
 ;==============================================================================
 (defsyntax And []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Or []
-  "Singleton class")
+  "Singleton class" None)
 
 
 ;==============================================================================
 ; Classgroup `operator`
 ;==============================================================================
 (defsyntax Add []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Sub []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Mult []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax MatMult []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Div []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Mod []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Pow []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax LShift []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax RShift []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax BitOr []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax BitXor []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax BitAnd []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax FloorDiv []
-  "Singleton class")
+  "Singleton class" None)
 
 
 ;==============================================================================
 ; Classgroup `unaryop`
 ;==============================================================================
 (defsyntax Invert []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Not []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax UAdd []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax USub []
-  "Singleton class")
+  "Singleton class" None)
 
 
 ;==============================================================================
 ; Classgroup `cmpop`
 ;==============================================================================
 (defsyntax Eq []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax NotEq []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Lt []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax LtE []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Gt []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax GtE []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax Is []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax IsNot []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax In []
-  "Singleton class")
+  "Singleton class" None)
 
 (defsyntax NotIn []
-  "Singleton class")
+  "Singleton class" None)
 
 
 ;==============================================================================
@@ -632,7 +632,7 @@
       :iter (expr)
       [list] :ifs (expr*)
       :is_async (int)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -645,7 +645,7 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -659,7 +659,7 @@
       [list] :kw_defaults (expr*)
       [optional] :kwarg (arg?)
       [list] :defaults (expr*)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -671,7 +671,7 @@
       [optional] :annotation (expr?)
       :lineno (int)
       :col_offset (int)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -681,7 +681,7 @@
   "Args:
       [optional] :arg (identifier?)
       :value (expr)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -691,7 +691,7 @@
   "Args:
       :name (identifier)
       [optional] :asname (identifier?)"
-  )
+  None)
 
 
 ;==============================================================================
@@ -701,6 +701,6 @@
   "Args:
       :context_expr (expr)
       [optional] :optional_vars (expr?)"
-  )
+  None)
 
 
