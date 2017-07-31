@@ -1,3 +1,3 @@
-# hy2py
+# py2hy
 
-hy2py is a transpiler that compiles Python AST to [Hy](https://github.com/hylang/hy).
+py2hy is a transpiler that compiles Python AST to [Hy](https://github.com/hylang/hy).
