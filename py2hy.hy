@@ -114,7 +114,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  `(assoc ~@#l#k:targets ~#m#k:value))
+  `(setv ~@#l#k:targets ~#m#k:value))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
@@ -173,7 +173,7 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(if ~#m#k:test
+  `('if ~#m#k:test
      (do
        ~@#l#k:body)
      (do
@@ -328,7 +328,7 @@
       :orelse (expr)
       :lineno (int)
       :col_offset (int)"
-  `(if ~#m#k:test
+  `('if ~#m#k:test
      ~#m#k:body
      ~#m#k:orelse))
 
@@ -769,4 +769,17 @@
 (setv codestring codestring.codestring)
 ; (print (ast.dump codestring))
 (setv grandlist (.visit (Py2ast) codestring))
-(print (macroexpand grandlist))
+; (print grandlist)
+(setv a (macroexpand grandlist))
+(print a)
+
+; (defn recprint [l depth]
+;     (if (= hy.models.HyExpression (type l))
+;       (do
+;         (print (* " " depth) "(" :end "")
+;         (print (get l 0))
+;         (for [x (drop 1 l)]
+;           (print (* " " depth) :end " ")(recprint x (+ 1 depth)))
+;         (print (* " " depth) ")"))
+;       (print l)))
+; (recprint a 0)
