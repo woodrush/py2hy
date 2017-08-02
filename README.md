@@ -5,12 +5,29 @@ py2hy is a transpiler that compiles Python AST to
 
 Currently work in progress.
 
-Working demos (in the current setting) are available in `demo/`. Try 
+Working demos (in the current setting) are available in `demo/`. Try:
+
 ```bash
 hy py2hy.hy demo/makengamesolver.py > demo/makengamesolver.hy
 hy demo/makengamesolver.hy
 ```
-and see that the Python script is correctly transpiled. 
+
+Currently, the running time is *extremely* long. To check progress, edit
+`py2hy.hy` and uncomment the two `print` lines in `(defmacro defsyntax ... )`.
+
+
+## Usage
+
+```bash
+hy py2hy.hy path/to/src.hy
+```
+
+To parse the [Python AST specs](https://docs.python.org/3.6/library/ast.html)
+and create the grammar template, do
+
+```bash
+make template  # i.e. `python parse_pygrammarspecs.py > template.hy`
+```
 
 ## How it works
 The main idea is to make the Python AST into S-expression form, then treat
@@ -20,11 +37,6 @@ Running the [parser](lib/parse_pygrammarspecs.py) for the
 [template script](template.hy) to be [filled in](py2hy.hy) to create
 `py2hy.hy`, a set of definitions of the transformations from Python AST to Hy.
 
-## Usage
-
-```bash
-hy py2hy.hy path/to/src.hy
-```
 
 ## Notes
 ### The `return` statement

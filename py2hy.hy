@@ -14,9 +14,11 @@
   `(macroexpand-1 ~body))
 
 (defmacro defsyntax [name keys &rest body]
-  (print "; Defining syntax" name "...")
+  ; Uncomment this for checking progress
+  ; (print "; Defining syntax" name "...")
   `(defmacro ~name [&rest restraw]
-     (print "; Expanding" '~name "...")
+     ; Uncomment this for checking progress
+     ; (print "; Expanding" '~name "...")
      ; `kvdict` is accessible inside `defsyntax` with `#k :keyname`
      (setv kvdict {}
            rest (iter restraw)
@@ -808,11 +810,8 @@
 
 
 (setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
-(print ";" (ast.dump codestring))
-
-; (print (ast.dump codestring))
+; (print ";" (ast.dump codestring))
 (setv grandlist (.visit (Py2ast) codestring))
-; (print grandlist)
 (setv a (macroexpand-1 grandlist))
 
 ; Modify `__repr__` to suppress `'`
