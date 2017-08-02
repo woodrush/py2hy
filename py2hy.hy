@@ -41,7 +41,12 @@
 (defsyntax Module [:body]
   "Args:
       [list] :body (stmt*)"
+  (setv body #l #k :body)
   `(do
+     ~@(if (in "Return" (body.__repr__))
+         `[(defclass Py2HyReturnException [Exception]
+             (defn __init__ [self retvalue]
+               (setv self.retvalue retvalue)))])
      ~@#l #k :body))
 
 (defsyntax Interactive [:body]
@@ -72,8 +77,17 @@
       [optional] :returns (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(defn ~#m #k :name ~#m #k :args
-     ~@#l #k :body))
+  (setv body #l #k :body)
+  (if (in "Return" (body.__repr__))
+    `(defn ~#m #k :name ~#m #k :args
+       "Using a hacky implementation of `return`"
+       (try
+         (do
+           ~@#l #k :body)
+         (except [e Py2HyReturnException]
+           e.retvalue)))
+    `(defn ~#m #k :name ~#m #k :args
+       ~@#l #k :body)))
 
 (defsyntax AsyncFunctionDef [:name :args :body :decorator_list :returns :lineno :col_offset]
   "Args:
@@ -104,9 +118,7 @@
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  ; TODO: return statement
-  ; `(return ~#m #k :value)
-  #m #k :value)
+  `(raise (Py2HyReturnException ~#m #k :value)))
 
 (defsyntax Delete [:targets :lineno :col_offset]
   "Args:
@@ -224,20 +236,14 @@
       [list] :finalbody (stmt*)
       :lineno (int)
       :col_offset (int)"
-  (setv except_clause
-        (list (map (fn [l]
-                     (setv except_form (nth l 0)
-                           orelse_form (nth l 1))
-                     `(except [~except_form]
-                        ~@orelse_form))
-                   (zip #l #k :handlers #l #k :orelse)))
+  (setv orelse #l #k :orelse
         finalbody #l #k :finalbody)
   `(try
      (do
        ~@#l #k :body)
-     ~(if (< 0 (len except_clause))
-         `~@except_clause
-         `(except))
+     ~@#l #k :handlers
+     ~@(if (< 0 (len orelse))
+         orelse)
      ~@(if (< 0 (len finalbody))
          finalbody)))
 
@@ -677,7 +683,7 @@
   "Singleton class" `=)
 
 (defsyntax NotEq []
-  "Singleton class" `neq)
+  "Singleton class" `!=)
 
 (defsyntax Lt []
   "Singleton class" `<)
@@ -695,13 +701,13 @@
   "Singleton class" `is)
 
 (defsyntax IsNot []
-  "Singleton class" `isnot)
+  "Singleton class" `is-not)
 
 (defsyntax In []
   "Singleton class" `in)
 
 (defsyntax NotIn []
-  "Singleton class" `notin)
+  "Singleton class" `not-in)
 
 
 ;==============================================================================
@@ -729,7 +735,10 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  None)
+  (setv e_name #m #k :name
+        e_type #m #k :type)
+  `(except [~@(if e_name [e_name]) ~@(if e_type [e_type])]
+     ~#l #k :body))
 
 
 ;==============================================================================
