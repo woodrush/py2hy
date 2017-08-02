@@ -2,7 +2,6 @@
         [sys]
         [ast]
         [re]
-        [codestring]
         [py2ast [Py2ast]])
 
 (deftag k [key]
@@ -12,9 +11,9 @@
 (deftag m [body]
   `(macroexpand-1 ~body))
 (defmacro defsyntax [name keys &rest body]
-  (print "Defining syntax" name "...")
+  (print "; Defining syntax" name "...")
   `(defmacro ~name [&rest restraw]
-     (print "Expanding" '~name "...")
+     (print "; Expanding" '~name "...")
      ; `kvdict` is accessible inside `defsyntax` with `#k :keyname`
      (setv kvdict {}
            rest (iter restraw)
@@ -39,7 +38,8 @@
 (defsyntax Module [:body]
   "Args:
       [list] :body (stmt*)"
-  `[~@#l #k :body])
+  `(do
+     ~@#l #k :body))
 
 (defsyntax Interactive [:body]
   "Args:
@@ -101,7 +101,9 @@
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(return ~#m #k :value))
+  ; TODO: return statement
+  ; `(return ~#m #k :value)
+  #m #k :value)
 
 (defsyntax Delete [:targets :lineno :col_offset]
   "Args:
@@ -177,14 +179,14 @@
       :lineno (int)
       :col_offset (int)"
   (setv orelse #l #k :orelse)
-  (if (< 0 (len orelse))
-    `(when ~#m #k :test
-       (do ~@#l #k :body))
+  (if orelse
     `(if ~#m #k :test
        (do
          ~@#l #k :body)
        (do
-         ~@orelse))))
+         ~@orelse))
+    `(when ~#m #k :test
+       (do ~@#l #k :body))))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -219,15 +221,22 @@
       [list] :finalbody (stmt*)
       :lineno (int)
       :col_offset (int)"
+  (setv except_clause
+        (list (map (fn [l]
+                     (setv except_form (nth l 0)
+                           orelse_form (nth l 1))
+                     `(except [~except_form]
+                        ~@orelse_form))
+                   (zip #l #k :handlers #l #k :orelse)))
+        finalbody #l #k :finalbody)
   `(try
      (do
        ~@#l #k :body)
-     (except
-       ~@#l #k :handlers)
-     (else
-       ~@#l #k :orelse)
-     (finally
-       ~@#l #k :finalbody)))
+     ~(if (< 0 (len except_clause))
+         `~@except_clause
+         `(except))
+     ~@(if (< 0 (len finalbody))
+         finalbody)))
 
 (defsyntax Assert [:test :msg :lineno :col_offset]
   "Args:
@@ -426,7 +435,9 @@
       [list] :keywords (keyword*)
       :lineno (int)
       :col_offset (int)"
-  `(~#m #k :func ~@#l #k :args ~@#l #k :keywords))
+  `(~#m #k :func
+    ~@#l #k :args
+    ~@(reduce + (map (fn [l] [(hy.models.HyKeyword (+ ":" (nth l 0))) (nth l 1)]) #l #k :keywords) [])))
 
 (defsyntax Num [:n :lineno :col_offset]
   "Args:
@@ -729,12 +740,6 @@
       [list] :kw_defaults (expr*)
       [optional] :kwarg (arg?)
       [list] :defaults (expr*)"
-      (print ':args        #l #k :args
-             ':vararg      #m #k :vararg
-             ':kwonlyargs  #l #k :kwonlyargs
-             ':kw_defaults #l #k :kw_defaults
-             ':kwarg       #m #k :kwarg
-             ':defaults    #l #k :defaults)
   `[ ~@#l #k :args
      ~@#m #k :vararg      ; Splice empty when `None`
      ~@#l #k :kwonlyargs
@@ -791,7 +796,7 @@
 
 
 (setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
-(print (ast.dump codestring))
+(print ";" (ast.dump codestring))
 
 ; (print (ast.dump codestring))
 (setv grandlist (.visit (Py2ast) codestring))
@@ -802,4 +807,6 @@
 (setv hy.models.HySymbol.__repr__ (fn [self] self))
 ; Modify `__repr__` for escaping
 (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (re.sub "\"" "\\\"" self) "\"")))
+; Modify `__repr__` for escaping
+(setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
 (print a)
