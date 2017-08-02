@@ -487,7 +487,7 @@
 
 (defsyntax NameConstant [:value :lineno :col_offset]
   "Args:
-      :value (singleton)
+      :value (Constant)
       :lineno (int)
       :col_offset (int)"
   #k :value)
@@ -568,22 +568,22 @@
 ; Classgroup `expr_context`
 ;==============================================================================
 (defsyntax Load []
-  "Singleton class")
+  "Constant expression")
 
 (defsyntax Store []
-  "Singleton class")
+  "Constant expression")
 
 (defsyntax Del []
-  "Singleton class")
+  "Constant expression")
 
 (defsyntax AugLoad []
-  "Singleton class")
+  "Constant expression")
 
 (defsyntax AugStore []
-  "Singleton class")
+  "Constant expression")
 
 (defsyntax Param []
-  "Singleton class")
+  "Constant expression")
 
 
 ;==============================================================================
@@ -611,103 +611,103 @@
 ; Classgroup `boolop`
 ;==============================================================================
 (defsyntax And []
-  "Singleton class" `and)
+  "Constant expression" `and)
 
 (defsyntax Or []
-  "Singleton class" `or)
+  "Constant expression" `or)
 
 
 ;==============================================================================
 ; Classgroup `operator`
 ;==============================================================================
 (defsyntax Add []
-  "Singleton class" `+)
+  "Constant expression" `+)
 
 (defsyntax Sub []
-  "Singleton class" `-)
+  "Constant expression" `-)
 
 (defsyntax Mult []
-  "Singleton class" `*)
+  "Constant expression" `*)
 
 (defsyntax MatMult []
-  "Singleton class" `matmul)
+  "Constant expression" `matmul)
 
 (defsyntax Div []
-  "Singleton class" `/)
+  "Constant expression" `/)
 
 (defsyntax Mod []
-  "Singleton class" `mod)
+  "Constant expression" `mod)
 
 (defsyntax Pow []
-  "Singleton class" `**)
+  "Constant expression" `**)
 
 (defsyntax LShift []
-  "Singleton class" `<<)
+  "Constant expression" `<<)
 
 (defsyntax RShift []
-  "Singleton class" `>>)
+  "Constant expression" `>>)
 
 (defsyntax BitOr []
-  "Singleton class" `|)
+  "Constant expression" `|)
 
 (defsyntax BitXor []
-  "Singleton class" `^)
+  "Constant expression" `^)
 
 (defsyntax BitAnd []
-  "Singleton class" `bitand)
+  "Constant expression" `bitand)
 
 (defsyntax FloorDiv []
-  "Singleton class" `//)
+  "Constant expression" `//)
 
 
 ;==============================================================================
 ; Classgroup `unaryop`
 ;==============================================================================
 (defsyntax Invert []
-  "Singleton class" `invert)
+  "Constant expression" `invert)
 
 (defsyntax Not []
-  "Singleton class" `not)
+  "Constant expression" `not)
 
 (defsyntax UAdd []
-  "Singleton class" `+)
+  "Constant expression" `+)
 
 (defsyntax USub []
-  "Singleton class" `-)
+  "Constant expression" `-)
 
 
 ;==============================================================================
 ; Classgroup `cmpop`
 ;==============================================================================
 (defsyntax Eq []
-  "Singleton class" `=)
+  "Constant expression" `=)
 
 (defsyntax NotEq []
-  "Singleton class" `!=)
+  "Constant expression" `!=)
 
 (defsyntax Lt []
-  "Singleton class" `<)
+  "Constant expression" `<)
 
 (defsyntax LtE []
-  "Singleton class" `<=)
+  "Constant expression" `<=)
 
 (defsyntax Gt []
-  "Singleton class" `>)
+  "Constant expression" `>)
 
 (defsyntax GtE []
-  "Singleton class" `>=)
+  "Constant expression" `>=)
 
 (defsyntax Is []
-  "Singleton class" `is)
+  "Constant expression" `is)
 
 (defsyntax IsNot []
-  "Singleton class" `is-not)
+  "Constant expression" `is-not)
 
 (defsyntax In []
-  "Singleton class" `in)
+  "Constant expression" `in)
 
 (defsyntax NotIn []
-  "Singleton class" `not-in)
+  "Constant expression" `not-in)
 
 
 ;==============================================================================

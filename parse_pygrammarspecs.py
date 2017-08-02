@@ -91,9 +91,9 @@ def fprint(fname, fargs):
         print("      " + "\n      ".join(docstring) + "\"")
         print("  None)")
     else:
-        # Singleton class
+        # Constant expression
         print("(defsyntax " + fname + " []")
-        print("  \"Singleton class\" None)")
+        print("  \"Constant expression\" None)")
     print()
 
 print("; Auto-generated template\n")
