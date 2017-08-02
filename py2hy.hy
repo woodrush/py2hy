@@ -6,10 +6,13 @@
 
 (deftag k [key]
   `(get kvdict ~key))
+
 (deftag l [body]
   `(hy.models.HyList (list (map macroexpand-1 ~body))))
+
 (deftag m [body]
   `(macroexpand-1 ~body))
+
 (defmacro defsyntax [name keys &rest body]
   (print "; Defining syntax" name "...")
   `(defmacro ~name [&rest restraw]

@@ -6,7 +6,7 @@
     (if (= list (type l))
       (hy.models.HyList (list (map (fn [l] (self.recapply f l)) l)))
       (f l)))
-  
+
   (defn generic_visit [self node]
     (hy.models.HyExpression
       (list (self.recapply (fn [x]
@@ -22,10 +22,4 @@
                                       (list-comp [(+ ":" n) c]
                                                  [[n c] (ast.iter_fields node)]
                                                  (not (is None c)))
-                                      []))))))
-  
-  ; (defn visit_alias [self node]
-  ;   (print "alias")
-  ;   (self.generic_visit node))
-  )
-
+                                      [])))))))
