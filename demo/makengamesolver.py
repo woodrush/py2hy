@@ -4,14 +4,14 @@ from collections import Counter
 from operator import *
 import random
 
-targetNum = 10
+random.seed(0)
 numlist = sorted([random.randint(1,100) for i in range(100)])
+targetNum = 10
 searchMode = 0
 # 0: Randomized search (fast for long number lists, doesn't stop if no solutions exist)
 # 1: Ordered search (good for short number lists, stops as soon as one solution is found)
 # 2: Exhaustive search
 
-random.seed(0)
 #======================================================================
 oplist = [sub, add, truediv, mul] if searchMode == 0 else [add, sub, truediv, mul] # Order is important
 ophash = {add:"+", sub:"-", mul:"*", truediv:"/"}
