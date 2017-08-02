@@ -1,18 +1,21 @@
 (import [hy]
+        [sys]
         [ast]
+        [re]
         [codestring]
         [py2ast [Py2ast]])
 
-; Auto-generated template
-(defsharp k [key]
+(deftag k [key]
   `(get kvdict ~key))
-(defsharp l [body]
-  `(list (map macroexpand ~body)))
-(defsharp m [body]
-  `(macroexpand ~body))
+(deftag l [body]
+  `(hy.models.HyList (list (map macroexpand-1 ~body))))
+(deftag m [body]
+  `(macroexpand-1 ~body))
 (defmacro defsyntax [name keys &rest body]
+  (print "Defining syntax" name "...")
   `(defmacro ~name [&rest restraw]
-     ; `kvdict` is accessible inside `defsyntax` with `#k:keyname`
+     (print "Expanding" '~name "...")
+     ; `kvdict` is accessible inside `defsyntax` with `#k :keyname`
      (setv kvdict {}
            rest (iter restraw)
            varcount 0)
@@ -36,8 +39,7 @@
 (defsyntax Module [:body]
   "Args:
       [list] :body (stmt*)"
-  `(do
-     ~@#l#k:body))
+  `[~@#l #k :body])
 
 (defsyntax Interactive [:body]
   "Args:
@@ -67,8 +69,8 @@
       [optional] :returns (expr?)
       :lineno (int)
       :col_offset (int)"
-  `('defn ~#k:name [~@#k:args]
-     ~@#l#k:body))
+  `(defn ~#m #k :name ~#m #k :args
+     ~@#l #k :body))
 
 (defsyntax AsyncFunctionDef [:name :args :body :decorator_list :returns :lineno :col_offset]
   "Args:
@@ -90,23 +92,23 @@
       [list] :decorator_list (expr*)
       :lineno (int)
       :col_offset (int)"_
-  `(defclass ~#k:name [~@#k:bases]
-     ~@#l#k:keywords
-     ~@#l#k:body))
+  `(defclass ~#k :name [~@#k :bases]
+     ~@#l #k :keywords
+     ~@#l #k :body))
 
 (defsyntax Return [:value :lineno :col_offset]
   "Args:
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(return ~#m#k:value))
+  `(return ~#m #k :value))
 
 (defsyntax Delete [:targets :lineno :col_offset]
   "Args:
       [list] :targets (expr*)
       :lineno (int)
       :col_offset (int)"
-  `(del ~@#l#k:targets))
+  `(del ~@#l #k :targets))
 
 (defsyntax Assign [:targets :value :lineno :col_offset]
   "Args:
@@ -114,7 +116,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  `(setv ~@#l#k:targets ~#m#k:value))
+  `(setv ~@#l #k :targets ~#m #k :value))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
@@ -123,7 +125,8 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  `(~#m#k:op ~#m#k:target ~#m#k:value))
+      ; TODO
+  `(setv ~#m #k :target (~#m #k :op ~#m #k :target ~#m #k :value)))
 
 (defsyntax AnnAssign [:target :annotation :value :simple :lineno :col_offset]
   "Args:
@@ -143,8 +146,8 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(for [~#m#k:target ~#m#k:iter]
-     ~@#l#k:body))
+  `(for [~#m #k :target ~#m #k :iter]
+     ~@#l #k :body))
 
 (defsyntax AsyncFor [:target :iter :body :orelse :lineno :col_offset]
   "Args:
@@ -163,8 +166,8 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(while ~#m#k:test
-     ~@#l#k:body))
+  `(while ~#m #k :test
+     ~@#l #k :body))
 
 (defsyntax If [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -173,11 +176,15 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `('if ~#m#k:test
-     (do
-       ~@#l#k:body)
-     (do
-       ~@#l#k:orelse)))
+  (setv orelse #l #k :orelse)
+  (if (< 0 (len orelse))
+    `(when ~#m #k :test
+       (do ~@#l #k :body))
+    `(if ~#m #k :test
+       (do
+         ~@#l #k :body)
+       (do
+         ~@orelse))))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -185,8 +192,8 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(with [~@#l#k:items]
-         ~@#l#k:body))
+  `(with [~@#l #k :items]
+         ~@#l #k :body))
 
 (defsyntax AsyncWith [:items :body :lineno :col_offset]
   "Args:
@@ -202,7 +209,7 @@
       [optional] :cause (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(raise ~#m#k:exc ~#m#k:cause))
+  `(raise ~#m #k :exc ~#m #k :cause))
 
 (defsyntax Try [:body :handlers :orelse :finalbody :lineno :col_offset]
   "Args:
@@ -213,13 +220,14 @@
       :lineno (int)
       :col_offset (int)"
   `(try
-     ~@#l#k:body
+     (do
+       ~@#l #k :body)
      (except
-       ~@#l#k:handlers)
+       ~@#l #k :handlers)
      (else
-       ~@#l#k:orelse)
+       ~@#l #k :orelse)
      (finally
-       ~@#l#k:finalbody)))
+       ~@#l #k :finalbody)))
 
 (defsyntax Assert [:test :msg :lineno :col_offset]
   "Args:
@@ -227,14 +235,14 @@
       [optional] :msg (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(assert ~#m#k:test ~#m#k:msg))
+  `(assert ~#m #k :test ~#m #k :msg))
 
 (defsyntax Import [:names :lineno :col_offset]
   "Args:
       [list] :names (alias*)
       :lineno (int)
       :col_offset (int)"
-  `(import ~@#l#k:names))
+  `(import ~@#l #k :names))
 
 (defsyntax ImportFrom [:module :names :level :lineno :col_offset]
   "Args:
@@ -243,28 +251,28 @@
       [optional] :level (int?)
       :lineno (int)
       :col_offset (int)"
-  `(import [~#k:module [~@#l#k:names]]))
+  `(import [~#k :module [~@(reduce + #l #k :names)]]))
 
 (defsyntax Global [:names :lineno :col_offset]
   "Args:
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  `(global ~@#l#k:names))
+  `(global ~@#l #k :names))
 
 (defsyntax Nonlocal [:names :lineno :col_offset]
   "Args:
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  `(nonlocal ~@#l#k:names))
+  `(nonlocal ~@#l #k :names))
 
 (defsyntax Expr [:value :lineno :col_offset]
   "Args:
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  #m#k:value)
+  #m #k :value)
 
 (defsyntax Pass [:lineno :col_offset]
   "Args:
@@ -294,7 +302,7 @@
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  `(~#m#k:op ~@#l#k:values))
+  `(~#m #k :op ~@#l #k :values))
 
 (defsyntax BinOp [:left :op :right :lineno :col_offset]
   "Args:
@@ -303,7 +311,7 @@
       :right (expr)
       :lineno (int)
       :col_offset (int)"
-  `(~#m#k:op ~#m#k:left ~#m#k:right))
+  `(~#m #k :op ~#m #k :left ~#m #k :right))
 
 (defsyntax UnaryOp [:op :operand :lineno :col_offset]
   "Args:
@@ -311,7 +319,7 @@
       :operand (expr)
       :lineno (int)
       :col_offset (int)"
-  `(~#m#k:op ~#m#k:operand))
+  `(~#m #k :op ~#m #k :operand))
 
 (defsyntax Lambda [:args :body :lineno :col_offset]
   "Args:
@@ -319,7 +327,7 @@
       :body (expr)
       :lineno (int)
       :col_offset (int)"
-  `(fn [~@#k:args] ~#m#k:body))
+  `(fn [~@#k :args] ~#m #k :body))
 
 (defsyntax IfExp [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -328,9 +336,9 @@
       :orelse (expr)
       :lineno (int)
       :col_offset (int)"
-  `('if ~#m#k:test
-     ~#m#k:body
-     ~#m#k:orelse))
+  `(if ~#m #k :test
+     ~#m #k :body
+     ~#m #k :orelse))
 
 (defsyntax Dict [:keys :values :lineno :col_offset]
   "Args:
@@ -338,14 +346,14 @@
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  `{~(.join ":" (zip #l#k:keys #l#k:values))})
+  `{~@(interleave #l #k :keys #l #k :values)})
 
 (defsyntax Set [:elts :lineno :col_offset]
   "Args:
       [list] :elts (expr*)
       :lineno (int)
       :col_offset (int)"
-  `(set ~@#l#k:elts))
+  `(set ~@#l #k :elts))
 
 (defsyntax ListComp [:elt :generators :lineno :col_offset]
   "Args:
@@ -353,8 +361,8 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  `(list-comp ~#m#k:elt
-              ~@#l#k:generators))
+  `(list-comp ~#m #k :elt
+              ~@(reduce + #l #k :generators)))
 
 (defsyntax SetComp [:elt :generators :lineno :col_offset]
   "Args:
@@ -393,7 +401,7 @@
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(yield ~#m #k :value))
 
 (defsyntax YieldFrom [:value :lineno :col_offset]
   "Args:
@@ -409,7 +417,7 @@
       [list] :comparators (expr*)
       :lineno (int)
       :col_offset (int)"
-  `(~@#l#k:ops ~#m#k:left ~@#l#k:comparators))
+  `(~@#l #k :ops ~#m #k :left ~@#l #k :comparators))
 
 (defsyntax Call [:func :args :keywords :lineno :col_offset]
   "Args:
@@ -418,21 +426,21 @@
       [list] :keywords (keyword*)
       :lineno (int)
       :col_offset (int)"
-  `(~#m#k:func ~@#l#k:args ~@#l#k:keywords))
+  `(~#m #k :func ~@#l #k :args ~@#l #k :keywords))
 
 (defsyntax Num [:n :lineno :col_offset]
   "Args:
       :n (object)
       :lineno (int)
       :col_offset (int)"
-  #k:n)
+  #k :n)
 
 (defsyntax Str [:s :lineno :col_offset]
   "Args:
       :s (string)
       :lineno (int)
       :col_offset (int)"
-  #k:s)
+  (hy.models.HyString #k :s))
 
 (defsyntax FormattedValue [:value :conversion :format_spec :lineno :col_offset]
   "Args:
@@ -448,7 +456,7 @@
       [list] :values (expr*)
       :lineno (int)
       :col_offset (int)"
-  #m#k:values)
+  #m #k :values)
 
 (defsyntax Bytes [:s :lineno :col_offset]
   "Args:
@@ -462,7 +470,7 @@
       :value (singleton)
       :lineno (int)
       :col_offset (int)"
-  #k:value)
+  #k :value)
 
 (defsyntax Ellipsis [:lineno :col_offset]
   "Args:
@@ -475,7 +483,7 @@
       :value (constant)
       :lineno (int)
       :col_offset (int)"
-  #k:value)
+  #k :value)
 
 (defsyntax Attribute [:value :attr :ctx :lineno :col_offset]
   "Args:
@@ -484,7 +492,15 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `(get ~#m#k:value ~#m#k:attr))
+  ; (setv s (gensym)
+  ;       a (hy.models.HySymbol (+ s "." #m #k :attr)))
+  ; (print (type a))
+  ; (print a)
+  ; `(do
+  ;    (setv ~s ~#m #k :value)
+  ;    ~a)
+  `(. ~#m #k :value ~#m #k :attr)
+  )
 
 (defsyntax Subscript [:value :slice :ctx :lineno :col_offset]
   "Args:
@@ -493,7 +509,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `(get ~#m#k:value ~#m#k:slice))
+  `(get ~#m #k :value ~#m #k :slice))
 
 (defsyntax Starred [:value :ctx :lineno :col_offset]
   "Args:
@@ -501,7 +517,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `(dispatch_sharp_macro "*" ~#m#k:value))
+  `(dispatch_sharp_macro "*" ~#m #k :value))
 
 (defsyntax Name [:id :ctx :lineno :col_offset]
   "Args:
@@ -509,7 +525,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  #k:id)
+  #k :id)
 
 (defsyntax List [:elts :ctx :lineno :col_offset]
   "Args:
@@ -517,7 +533,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `[~@#l#k:elts])
+  `[~@#l #k :elts])
 
 (defsyntax Tuple [:elts :ctx :lineno :col_offset]
   "Args:
@@ -525,7 +541,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `(, ~@#l#k:elts))
+  `(, ~@#l #k :elts))
 
 
 ;==============================================================================
@@ -558,7 +574,7 @@
       [optional] :lower (expr?)
       [optional] :upper (expr?)
       [optional] :step (expr?)"
-  `(slice ~#m#k:lower ~#m#k:upper ~#m#k:step))
+  `(slice ~#m #k :lower ~#m #k :upper ~#m #k :step))
 
 (defsyntax ExtSlice [:dims]
   "Args:
@@ -568,7 +584,7 @@
 (defsyntax Index [:value]
   "Args:
       :value (expr)"
-  #m#k:value)
+  #m #k :value)
 
 
 ;==============================================================================
@@ -683,9 +699,10 @@
       :iter (expr)
       [list] :ifs (expr*)
       :is_async (int)"
-  `(list-comp ~#m#k:target
-              [~#m#k:target ~#m#k:iter]
-              (and ~@#l#k:ifs)))
+  (setv ifs #l #k :ifs)
+  `[[~#m #k :target ~#m #k :iter]
+    ~@(if (< 0 (len ifs))
+       `[(and ~@ifs)])])
 
 
 ;==============================================================================
@@ -712,12 +729,18 @@
       [list] :kw_defaults (expr*)
       [optional] :kwarg (arg?)
       [list] :defaults (expr*)"
-  `(~@#l#k:args
-     ~#m#k:vararg
-     ~@#l#k:kwonlyargs
-     ~@#l#k:kw_defaults
-     ~#m#k:kwarg
-     ~@#l#k:defaults))
+      (print ':args        #l #k :args
+             ':vararg      #m #k :vararg
+             ':kwonlyargs  #l #k :kwonlyargs
+             ':kw_defaults #l #k :kw_defaults
+             ':kwarg       #m #k :kwarg
+             ':defaults    #l #k :defaults)
+  `[ ~@#l #k :args
+     ~@#m #k :vararg      ; Splice empty when `None`
+     ~@#l #k :kwonlyargs
+     ~@#l #k :kw_defaults
+     ~@#m #k :kwarg       ; Splice empty when `None`
+     ~@#l #k :defaults])
 
 
 ;==============================================================================
@@ -729,7 +752,8 @@
       [optional] :annotation (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(~#k:arg ~#k:expr))
+  ; TODO: use `:annotation`
+  `~#m #k :arg)
 
 
 ;==============================================================================
@@ -739,7 +763,7 @@
   "Args:
       [optional] :arg (identifier?)
       :value (expr)"
-  `(~#k:arg ~#m#k:value))
+  `(~#k :arg ~#m #k :value))
 
 
 ;==============================================================================
@@ -749,9 +773,9 @@
   "Args:
       :name (identifier)
       [optional] :asname (identifier?)"
-  (if #k:asname
-    `[~#k:name :as ~#k:asname]
-    `[~#k:name]))
+  (if #k :asname
+    `[~#k :name :as ~#k :asname]
+    `[~#k :name]))
 
 
 ;==============================================================================
@@ -761,25 +785,21 @@
   "Args:
       :context_expr (expr)
       [optional] :optional_vars (expr?)"
-  `(~#m#k:context_expr
-     ~#m#k:optional_vars))
+  `(~#m #k :context_expr
+     ~#m #k :optional_vars))
 
 
 
-(setv codestring codestring.codestring)
+(setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
+(print (ast.dump codestring))
+
 ; (print (ast.dump codestring))
 (setv grandlist (.visit (Py2ast) codestring))
 ; (print grandlist)
-(setv a (macroexpand grandlist))
-(print a)
+(setv a (macroexpand-1 grandlist))
 
-; (defn recprint [l depth]
-;     (if (= hy.models.HyExpression (type l))
-;       (do
-;         (print (* " " depth) "(" :end "")
-;         (print (get l 0))
-;         (for [x (drop 1 l)]
-;           (print (* " " depth) :end " ")(recprint x (+ 1 depth)))
-;         (print (* " " depth) ")"))
-;       (print l)))
-; (recprint a 0)
+; Modify `__repr__` to suppress `'`
+(setv hy.models.HySymbol.__repr__ (fn [self] self))
+; Modify `__repr__` for escaping
+(setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (re.sub "\"" "\\\"" self) "\"")))
+(print a)
