@@ -12,9 +12,7 @@ hy py2hy.hy demo/makengamesolver.py > demo/makengamesolver.hy
 hy demo/makengamesolver.hy
 ```
 
-Currently, the running time is *extremely* long. To check progress, edit
-`py2hy.hy` and uncomment the two `print` lines in `(defmacro defsyntax ... )`.
-
+The newest version uses the Python AST class, making it transpile in a usable speed.
 
 ## Usage
 

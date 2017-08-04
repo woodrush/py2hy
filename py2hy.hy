@@ -5,37 +5,41 @@
         [py2ast [Py2ast]])
 
 (deftag k [key]
-  `(get kvdict ~key))
+  `(. self ~(hy.models.HySymbol (.join "" (drop 2 key)))))
 
 (deftag l [body]
-  `(hy.models.HyList (list (map macroexpand-1 ~body))))
+  `(hy.models.HyList (list (map (fn [x]
+                                  (if (hasattr x "expand")
+                                    (x.expand)
+                                    (cond
+                                      [(is None x) None]
+                                      [(= int (type x)) (hy.models.HyInteger x)]
+                                      [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
+                                      [(.startswith x ":") (hy.models.HyKeyword x)]
+                                      [(= list (type x)) (hy.models.HyList x)]
+                                      [True (hy.models.HySymbol x)])))
+                                ~body))))
 
-(deftag m [body]
-  `(macroexpand-1 ~body))
+(deftag m [x]
+  `(do
+     (if (hasattr ~x "expand")
+       ((. ~x expand))
+       (cond
+         [(is None ~x) None]
+         [(= int (type ~x)) (hy.models.HyInteger ~x)]
+         [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
+         [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
+         [(= list (type ~x)) (hy.models.HyList ~x)]
+         [True (hy.models.HySymbol ~x)]))))
 
 (defmacro defsyntax [name keys &rest body]
   ; Uncomment this for checking progress
   ; (print "; Defining syntax" name "...")
-  `(defmacro ~name [&rest restraw]
-     ; Uncomment this for checking progress
-     ; (print "; Expanding" '~name "...")
-     ; `kvdict` is accessible inside `defsyntax` with `#k :keyname`
-     (setv kvdict {}
-           rest (iter restraw)
-           varcount 0)
-     ; Associate HyKeyword arguments with its arguments
-     (for [f rest]
-       (cond
-         [(= hy.models.HyKeyword (type f))
-          (assoc kvdict f (next rest))]
-         [True
-          (assoc kvdict varcount f)
-          (+= varcount 1)]))
-     ; Associate unprovided keys with `None`
-     (for [k [~@keys]]
-       (when (not (in k (kvdict.keys)))
-         (assoc kvdict k None)))
-     ~@body))
+  `(setv (. (. ast ~name) expand)
+         (fn [self]
+           ; Uncomment this for checking progress
+           ; (print "; Expanding" '~name "...")
+           ~@body)))
 
 ;==============================================================================
 ; Classgroup `mod`
@@ -81,7 +85,7 @@
       :col_offset (int)"
   (setv body #l #k :body)
   (if (in "Return" (body.__repr__))
-    `(defn ~#m #k :name ~#m #k :args
+    `(defn ~(hy.models.HySymbol #m #k :name) ~#m #k :args
        "Using a hacky implementation of `return`"
        (try
          (do
@@ -110,8 +114,8 @@
       [list] :body (stmt*)
       [list] :decorator_list (expr*)
       :lineno (int)
-      :col_offset (int)"_
-  `(defclass ~#k :name [~@#k :bases]
+      :col_offset (int)"
+  `(defclass ~#m #k :name [~@#m #k :bases]
      ~@#l #k :keywords
      ~@#l #k :body))
 
@@ -271,7 +275,7 @@
       [optional] :level (int?)
       :lineno (int)
       :col_offset (int)"
-  `(import [~#k :module [~@(reduce + #l #k :names)]]))
+  `(import [~#m #k :module [~@(reduce + #l #k :names)]]))
 
 (defsyntax Global [:names :lineno :col_offset]
   "Args:
@@ -347,7 +351,7 @@
       :body (expr)
       :lineno (int)
       :col_offset (int)"
-  `(fn [~@#k :args] ~#m #k :body))
+  `(fn [~@#m #k :args] ~#m #k :body))
 
 (defsyntax IfExp [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -382,7 +386,7 @@
       :lineno (int)
       :col_offset (int)"
   `(list-comp ~#m #k :elt
-              ~@(reduce + #l #k :generators)))
+              ~@(reduce (fn [x y] (+ x y)) #l #k :generators)))
 
 (defsyntax SetComp [:elt :generators :lineno :col_offset]
   "Args:
@@ -448,21 +452,21 @@
       :col_offset (int)"
   `(~#m #k :func
     ~@#l #k :args
-    ~@(reduce + (map (fn [l] [(hy.models.HyKeyword (+ ":" (nth l 0))) (nth l 1)]) #l #k :keywords) [])))
+    ~@(reduce (fn [x y] (+ x y)) (map (fn [l] [(hy.models.HyKeyword (+ ":" (nth l 0))) (nth l 1)]) #l #k :keywords) [])))
 
 (defsyntax Num [:n :lineno :col_offset]
   "Args:
       :n (object)
       :lineno (int)
       :col_offset (int)"
-  #k :n)
+  #m #k :n)
 
 (defsyntax Str [:s :lineno :col_offset]
   "Args:
       :s (string)
       :lineno (int)
       :col_offset (int)"
-  (hy.models.HyString #k :s))
+  (hy.models.HyString #m #k :s))
 
 (defsyntax FormattedValue [:value :conversion :format_spec :lineno :col_offset]
   "Args:
@@ -492,7 +496,7 @@
       :value (Constant)
       :lineno (int)
       :col_offset (int)"
-  #k :value)
+  #m #k :value)
 
 (defsyntax Ellipsis [:lineno :col_offset]
   "Args:
@@ -505,7 +509,7 @@
       :value (constant)
       :lineno (int)
       :col_offset (int)"
-  #k :value)
+  #m #k :value)
 
 (defsyntax Attribute [:value :attr :ctx :lineno :col_offset]
   "Args:
@@ -547,7 +551,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  #k :id)
+  #m #k :id)
 
 (defsyntax List [:elts :ctx :lineno :col_offset]
   "Args:
@@ -782,7 +786,7 @@
   "Args:
       [optional] :arg (identifier?)
       :value (expr)"
-  `(~#k :arg ~#m #k :value))
+  `(~#m #k :arg ~#m #k :value))
 
 
 ;==============================================================================
@@ -792,9 +796,9 @@
   "Args:
       :name (identifier)
       [optional] :asname (identifier?)"
-  (if #k :asname
-    `[~#k :name :as ~#k :asname]
-    `[~#k :name]))
+  (if #m #k :asname
+    `[~#m #k :name :as ~#m #k :asname]
+    `[~#m #k :name]))
 
 
 ;==============================================================================
@@ -809,15 +813,19 @@
 
 
 
-(setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
-; (print ";" (ast.dump codestring))
-(setv grandlist (.visit (Py2ast) codestring))
-(setv a (macroexpand-1 grandlist))
+; (setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
+; ; (print ";" (ast.dump codestring))
+; (setv grandlist (.visit (Py2ast) codestring))
+; (setv a (macroexpand-1 grandlist))
+(setv codeobj (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
+(setv a (codeobj.expand))
 
 ; Modify `__repr__` to suppress `'`
-(setv hy.models.HySymbol.__repr__ (fn [self] self))
+(setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
 ; Modify `__repr__` for escaping
 (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (re.sub "\"" "\\\"" self) "\"")))
 ; Modify `__repr__` for escaping
 (setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
+; Modify `__repr__` for escaping
+; (setv hy.models.HyList.__repr__ (fn [self] (.join " " (map (fn [x] (x.__repr__)) self))))
 (print a)
