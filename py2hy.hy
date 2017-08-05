@@ -797,9 +797,9 @@
         defaults #l #k :defaults
         kwonlyargs #l #k :kwonlyargs
         kw_defaults #l #k :kw_defaults)
-  (defn len [iter]
-    (sum (list-comp 1 [x iter])))
   (defn take-last [n l]
+    (defn len [iter]
+      (sum (list-comp 1 [x iter])))
     (drop (- (len l) n) l))
   `[~@(drop-last (len defaults) args)
     ~@(if defaults
@@ -813,7 +813,7 @@
           ~@(list-comp `[~x ~y]
                        [[x y] (zip (take-last (len kw_defaults) kwonlyargs)
                                    kw_defaults)])])
-    ~@(if kwarg `[&kwarg ~kwarg])
+    ~@(if kwarg `[&kwargs ~kwarg])
     ~@(if vararg `[&rest ~vararg])])
 
 
@@ -868,8 +868,9 @@
   "Args:
       :context_expr (expr)
       [optional] :optional_vars (expr?)"
-  `(~#m #k :context_expr
-     ~#m #k :optional_vars))
+  (setv optional_vars #m #k :optional_vars)
+  `(~@(if optional_vars [optional_vars])
+    ~#m #k :context_expr))
 
 
 
