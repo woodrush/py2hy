@@ -15,8 +15,8 @@
                                       [(is None x) None]
                                       [(= int (type x)) (hy.models.HyInteger x)]
                                       [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
-                                      [(.startswith x ":") (hy.models.HyKeyword x)]
                                       [(= list (type x)) (hy.models.HyList x)]
+                                      [(.startswith x ":") (hy.models.HyKeyword x)]
                                       [True (hy.models.HySymbol x)])))
                                 ~body))))
 
@@ -28,8 +28,8 @@
          [(is None ~x) None]
          [(= int (type ~x)) (hy.models.HyInteger ~x)]
          [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
-         [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
          [(= list (type ~x)) (hy.models.HyList ~x)]
+         [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
          [True (hy.models.HySymbol ~x)]))))
 
 (defmacro defsyntax [name keys &rest body]
@@ -40,6 +40,13 @@
            ; Uncomment this for checking progress
            ; (print "; Expanding" '~name "...")
            ~@body)))
+
+(setv hy_reserved_keywords
+      `[fn defn defclass])
+(defn mangle_identifier [x]
+  (if (in x hy_reserved_keywords)
+    (hy.models.HySymbol (+ x "_py2hy_mangling"))
+    x))
 
 ;==============================================================================
 ; Classgroup `mod`
@@ -85,14 +92,14 @@
       :col_offset (int)"
   (setv body #l #k :body)
   (if (in "Return" (body.__repr__))
-    `(defn ~(hy.models.HySymbol #m #k :name) ~#m #k :args
+    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
        "Using a hacky implementation of `return`"
        (try
          (do
            ~@#l #k :body)
          (except [e Py2HyReturnException]
            e.retvalue)))
-    `(defn ~#m #k :name ~#m #k :args
+    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
        ~@#l #k :body)))
 
 (defsyntax AsyncFunctionDef [:name :args :body :decorator_list :returns :lineno :col_offset]
@@ -115,8 +122,8 @@
       [list] :decorator_list (expr*)
       :lineno (int)
       :col_offset (int)"
-  `(defclass ~#m #k :name [~@#m #k :bases]
-     ~@#l #k :keywords
+  ; TODO: defclass
+  `(defclass ~(mangle_identifier #m #k :name) [~@#l #k :bases]
      ~@#l #k :body))
 
 (defsyntax Return [:value :lineno :col_offset]
@@ -139,7 +146,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  `(setv ~@#l #k :targets ~#m #k :value))
+  `(setv ~@(interleave #l #k :targets (repeat #m #k :value))))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
@@ -232,7 +239,8 @@
       [optional] :cause (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(raise ~#m #k :exc ~#m #k :cause))
+  ; TODO: cause
+  `(raise ~#m #k :exc))
 
 (defsyntax Try [:body :handlers :orelse :finalbody :lineno :col_offset]
   "Args:
@@ -282,14 +290,14 @@
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  `(global ~@#l #k :names))
+  `(global ~@(map mangle_identifier #l #k :names)))
 
 (defsyntax Nonlocal [:names :lineno :col_offset]
   "Args:
       [list] :names (identifier*)
       :lineno (int)
       :col_offset (int)"
-  `(nonlocal ~@#l #k :names))
+  `(nonlocal ~@(map mangle_identifier #l #k :names)))
 
 (defsyntax Expr [:value :lineno :col_offset]
   "Args:
@@ -351,7 +359,7 @@
       :body (expr)
       :lineno (int)
       :col_offset (int)"
-  `(fn [~@#m #k :args] ~#m #k :body))
+  `(fn ~#m #k :args ~#m #k :body))
 
 (defsyntax IfExp [:test :body :orelse :lineno :col_offset]
   "Args:
@@ -551,7 +559,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  #m #k :id)
+  (mangle_identifier #m #k :id))
 
 (defsyntax List [:elts :ctx :lineno :col_offset]
   "Args:
@@ -741,7 +749,7 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  (setv e_name #m #k :name
+  (setv e_name (mangle_identifier #m #k :name)
         e_type #m #k :type)
   `(except [~@(if e_name [e_name]) ~@(if e_type [e_type])]
      ~#l #k :body))
@@ -758,12 +766,31 @@
       [list] :kw_defaults (expr*)
       [optional] :kwarg (arg?)
       [list] :defaults (expr*)"
-  `[ ~@#l #k :args
-     ~@#m #k :vararg      ; Splice empty when `None`
-     ~@#l #k :kwonlyargs
-     ~@#l #k :kw_defaults
-     ~@#m #k :kwarg       ; Splice empty when `None`
-     ~@#l #k :defaults])
+  ; TODO: kwonlyargs
+  (setv args #l #k :args
+        vararg #m #k :vararg
+        kwarg #m #k :kwarg
+        defaults #l #k :defaults
+        kwonlyargs #l #k :kwonlyargs
+        kw_defaults #l #k :kw_defaults)
+  (defn len [iter]
+    (sum (list-comp 1 [x iter])))
+  (defn take-last [n l]
+    (drop (- (len l) n) l))
+  `[~@(drop-last (len defaults) args)
+    ~@(if defaults
+        `[&optional
+          ~@(list-comp `[~x ~y]
+                       [[x y] (zip (take-last (len defaults) args)
+                                   defaults)])])
+    ~@(if kwonlyargs
+        `[&kwonly
+          ~@(drop-last (len kw_defaults) kwonlyargs)
+          ~@(list-comp `[~x ~y]
+                       [[x y] (zip (take-last (len kw_defaults) kwonlyargs)
+                                   kw_defaults)])])
+    ~@(if kwarg `[&kwarg ~kwarg])
+    ~@(if vararg `[&rest ~vararg])])
 
 
 ;==============================================================================
@@ -776,7 +803,7 @@
       :lineno (int)
       :col_offset (int)"
   ; TODO: use `:annotation`
-  `~#m #k :arg)
+  `~(mangle_identifier #m #k :arg))
 
 
 ;==============================================================================
@@ -786,7 +813,7 @@
   "Args:
       [optional] :arg (identifier?)
       :value (expr)"
-  `(~#m #k :arg ~#m #k :value))
+  `(~(mangle_identifier #m #k :arg) ~#m #k :value))
 
 
 ;==============================================================================
@@ -827,5 +854,7 @@
 ; Modify `__repr__` for escaping
 (setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
 ; Modify `__repr__` for escaping
+(setv hy.models.HyList.__repr__ (fn [self] (+ "[" (.join " " (map (fn [x] (x.__repr__)) self)) "]")))
 ; (setv hy.models.HyList.__repr__ (fn [self] (.join " " (map (fn [x] (x.__repr__)) self))))
-(print a)
+(for [x (drop 1 a)]
+  (print x))
