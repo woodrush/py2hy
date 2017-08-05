@@ -420,7 +420,8 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(set-comp ~#m #k :elt
+             ~@(reduce (fn [x y] (+ x y)) #l #k :generators)))
 
 (defsyntax DictComp [:key :value :generators :lineno :col_offset]
   "Args:
@@ -429,7 +430,9 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(dict-comp ~#m #k :key
+              ~#m #k :value
+              ~@(reduce (fn [x y] (+ x y)) #l #k :generators)))
 
 (defsyntax GeneratorExp [:elt :generators :lineno :col_offset]
   "Args:
@@ -437,7 +440,8 @@
       [list] :generators (comprehension*)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(genexpr ~#m #k :elt
+            ~@(reduce (fn [x y] (+ x y)) #l #k :generators)))
 
 (defsyntax Await [:value :lineno :col_offset]
   "Args:
