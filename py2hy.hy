@@ -828,7 +828,11 @@
       :col_offset (int)"
   (setv e_name (mangle_identifier #m #k :name)
         e_type #m #k :type)
-  `(except [~@(if e_name [e_name]) ~@(if e_type [e_type])]
+  `(except [~@(if e_name [e_name])
+            ~@(cond
+                [(is None e_type) None]
+                [(= ', (first e_type)) [`[~@(rest e_type)]]]
+                [True [e_type]])]
      ~@#l #k :body))
 
 
