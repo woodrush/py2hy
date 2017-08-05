@@ -143,9 +143,7 @@
                 (do
                   ~@(newliner (rest body)))
                 (except [e Py2HyReturnException]
-                  e.retvalue)
-                (except [e Exception]
-                  (raise e))))]))
+                  e.retvalue)))]))
   (if decorator_list
     `(with-decorator
        ~(Py2HyNewline)
@@ -198,44 +196,38 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  (setv targets #l #k :targets
-        value #m #k :value
-        targettype (type (first #k :targets)))
 
-  ; Dependencies:
-  ;     ast.Tuple: assumes the form (, a b c ...)
-  ;     ast.Subscript: assumes the form (get a "b")
-  (cond
-    [(= ast.Tuple targettype)
-     (do
-       (setv target (drop 1 (first targets)))
-       (setv g (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym))))))
-       `(do
-          (setv ~g ~value)
-          (setv
-            ~@(interleave target
-                          (map
-                            (fn [t] `(nth ~(second t) ~(first t)))
-                            (enumerate (repeat g)))))))]
-    [(= ast.Subscript targettype)
-     (do
-       (setv varname (nth (first targets) 1)
-             keyname (nth (first targets) 2))
-       `(assoc ~varname ~keyname ~value))]
-    [(< 1 (len targets))
-     (do
-       (setv g (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym))))))
-       `(do
-          (setv ~g ~value)
-          (setv
-            ~@(interleave targets
-                          (map
-                            (fn [t] `(nth ~(second t) ~(first t)))
-                            (enumerate (repeat g)))))))]
-    [(= ast.Name targettype)
-     `(setv ~@targets ~value)]
-    [True
-     `(setv ~@targets ~value)]))
+  (setv targets #l #k :targets)
+  (setv g (if (= 1 (len targets))
+            #m #k :value
+            (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym)))))))
+  (setv typedict {ast.Tuple
+                  (fn [target value]
+                    `(do
+                       ~@(map (fn [l] ((get typedict (type (first l)))
+                                       (first l)
+                                       (second l)))
+                              (zip target.elts
+                                   (map
+                                     (fn [t] `(nth ~(second t) ~(first t)))
+                                     (enumerate (repeat value)))))))
+                  ast.Subscript
+                  (fn [target value]
+                    (setv target #m target)
+                    `(assoc ~(nth target 1) ~(nth target 2) ~value))
+                  ast.Attribute
+                  (fn [target value]
+                    (setv target #m target)
+                    `(setv ~target ~value))
+                  ast.Name
+                  (fn [target value]
+                    (setv target #m target)
+                    `(setv ~target ~value))})
+  `(do
+     ~@(if (< 1 (len targets)) [`(setv ~g ~#m #k :value)])
+     ~@(map (fn [l] ((get typedict (type (first l))) (first l) (second l)))
+            (zip #k :targets
+                 (repeat g)))))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
