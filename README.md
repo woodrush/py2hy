@@ -14,6 +14,14 @@ hy demo/makengamesolver.hy
 
 The newest version uses the Python AST class, making it transpile in a usable speed.
 
+
+## Requirements
+
+py2hy requires the newest version of hy pulled and built from its
+[repo](https://github.com/hylang/hy). (I am currently using
+[e8ffd41](https://github.com/hylang/hy/commit/e8ffd412028232cc2cc4fe4bfb10f21ce8ab2565))
+
+
 ## Usage
 
 ```bash
