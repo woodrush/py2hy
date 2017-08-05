@@ -466,9 +466,18 @@
       [list] :keywords (keyword*)
       :lineno (int)
       :col_offset (int)"
+  (setv keywords #l #k :keywords)
   `(~#m #k :func
     ~@#l #k :args
-    ~@(reduce (fn [x y] (+ x y)) (map (fn [l] [(hy.models.HyKeyword (+ ":" (nth l 0))) (nth l 1)]) #l #k :keywords) [])))
+    ~@(if keywords
+        (reduce (fn [x y] (if (first y)
+                            (+ x y)
+                            `[(~'unpack_mapping ~(second y))]))
+                (map (fn [l] [(if (nth l 0)
+                                (hy.models.HyKeyword (+ ":" (nth l 0)))
+                                None) (nth l 1)])
+                     #l #k :keywords)
+                []))))
 
 (defsyntax Num [:n :lineno :col_offset]
   "Args:
@@ -559,7 +568,7 @@
       :ctx (expr_context)
       :lineno (int)
       :col_offset (int)"
-  `(dispatch_sharp_macro "*" ~#m #k :value))
+  `(~'unpack_iterable ~#m #k :value))
 
 (defsyntax Name [:id :ctx :lineno :col_offset]
   "Args:
@@ -821,6 +830,15 @@
   "Args:
       [optional] :arg (identifier?)
       :value (expr)"
+  ; The python code
+  ;
+  ;     f(*args, **kwargs)
+  ;
+  ; Becomes compiled to the AST
+  ;
+  ;     Call(func=Name(id='f', ctx=Load()),
+  ;          args=[Starred(value=Name(id='args', ctx=Load()), ctx=Load())],
+  ;          keywords=[keyword(arg=None, value=Name(id='kwargs', ctx=Load()))])
   `(~(mangle_identifier #m #k :arg) ~#m #k :value))
 
 
