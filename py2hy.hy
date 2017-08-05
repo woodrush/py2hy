@@ -100,16 +100,31 @@
       :col_offset (int)"
   (setv body #l #k :body
         decorator_list #l #k :decorator_list)
-  (setv main_body (if (in "Return" (body.__repr__))
-                    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-                       "Using a hacky implementation of `return`"
-                       (try
-                         (do
-                           ~@#l #k :body)
-                         (except [e Py2HyReturnException]
-                           e.retvalue)))
-                    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-                       ~@#l #k :body)))
+  (setv main_body
+        (cond
+          ; If there are no `return` statements, don't add the `try` construct
+          [(not-in "Return" (body.__repr__))
+           `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              ~@body)]
+          ; If there are no docstrings, put one
+          [(!= hy.models.HyString (type (first body)))
+           `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              "Using a hacky implementation of `return`"
+              (try
+                (do
+                  ~@body)
+                (except [e Py2HyReturnException]
+                  e.retvalue)))]
+          ; If there are docstrings, keep them, and append another
+          [True
+           `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              ~(first body)
+              "Using a hacky implementation of `return`"
+              (try
+                (do
+                  ~@(rest body))
+                (except [e Py2HyReturnException]
+                  e.retvalue)))]))
   (if decorator_list
     `(with-decorator ~@decorator_list
        ~main_body)
