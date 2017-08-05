@@ -2,6 +2,7 @@
         [sys]
         [ast]
         [re]
+        [argparse]
         [py2ast [Py2ast]])
 
 (deftag k [key]
@@ -883,23 +884,26 @@
     ~#m #k :context_expr))
 
 
-
-; (setv codestring (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
-; ; (print ";" (ast.dump codestring))
-; (setv grandlist (.visit (Py2ast) codestring))
-; (setv a (macroexpand-1 grandlist))
-(setv codeobj (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
-; (print (ast.dump codeobj))
-(setv a (codeobj.expand))
-
-; Modify `__repr__` to suppress `'`
-(setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
-; Modify `__repr__` for escaping
-(setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (re.sub "\"" "\\\"" self) "\"")))
-; Modify `__repr__` for escaping
-(setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
-; Modify `__repr__` for escaping
-(setv hy.models.HyList.__repr__ (fn [self] (+ "[" (.join " " (map (fn [x] (x.__repr__)) self)) "]")))
-; (setv hy.models.HyList.__repr__ (fn [self] (.join " " (map (fn [x] (x.__repr__)) self))))
-(for [x (drop 1 a)]
-  (print x))
+(setv parser (argparse.ArgumentParser))
+(parser.add_argument "filepath")
+(parser.add_argument "--ast" :action "store_true")
+(setv args (parser.parse_args))
+(setv codeobj (-> args.filepath (open "r") (.read) (ast.parse)))
+(if args.ast
+  (do
+    (print (ast.dump codeobj)))
+  (do
+    (setv a (codeobj.expand))
+    ; Modify `__repr__` to suppress `'`
+    (setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
+    ; Modify `__repr__` for escaping
+    (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (->> self
+                                                              (re.sub "\\\\" (+ "\\\\" "\\\\"))
+                                                              (re.sub "\"" "\\\"")) "\"")))
+    ; Modify `__repr__` for escaping
+    (setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
+    ; Modify `__repr__` for escaping
+    (setv hy.models.HyList.__repr__ (fn [self] (+ "[" (.join " " (map (fn [x] (x.__repr__)) self)) "]")))
+    ; (setv hy.models.HyList.__repr__ (fn [self] (.join " " (map (fn [x] (x.__repr__)) self))))
+    (for [x (drop 1 a)]
+      (print x))))
