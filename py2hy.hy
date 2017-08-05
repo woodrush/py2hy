@@ -15,6 +15,8 @@
                                     (cond
                                       [(is None x) None]
                                       [(= int (type x)) (hy.models.HyInteger x)]
+                                      [(= float (type x)) (hy.models.HyFloat x)]
+                                      [(= complex (type x)) (hy.models.HyComplex x)]
                                       [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
                                       [(= list (type x)) (hy.models.HyList x)]
                                       ; [(.startswith x ":") (hy.models.HyKeyword x)]
@@ -33,6 +35,8 @@
        (cond
          [(is None ~x) None]
          [(= int (type ~x)) (hy.models.HyInteger ~x)]
+         [(= float (type ~x)) (hy.models.HyFloat ~x)]
+         [(= complex (type ~x)) (hy.models.HyComplex ~x)]
          [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
          [(= list (type ~x)) (hy.models.HyList ~x)]
          ; [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
@@ -975,6 +979,9 @@
     (setv a (codeobj.expand))
     ; Modify `__repr__` to suppress `'`
     (setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
+    (setv hy.models.HyInteger.__repr__ (fn [self] (+ "" (str self))))
+    (setv hy.models.HyFloat.__repr__ (fn [self] (+ "" (str self))))
+    (setv hy.models.HyComplex.__repr__ (fn [self] (+ "" (str self))))
     ; Modify `__repr__` for escaping
     (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (->> self
                                                               (re.sub "\\\\" (+ "\\\\" "\\\\"))
