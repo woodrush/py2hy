@@ -257,9 +257,11 @@
        ~@#l #k :body)
      ~@#l #k :handlers
      ~@(if (< 0 (len orelse))
-         orelse)
+         `[(else
+            ~@orelse)])
      ~@(if (< 0 (len finalbody))
-         finalbody)))
+         `[(finally
+            ~@finalbody)])))
 
 (defsyntax Assert [:test :msg :lineno :col_offset]
   "Args:
@@ -752,7 +754,7 @@
   (setv e_name (mangle_identifier #m #k :name)
         e_type #m #k :type)
   `(except [~@(if e_name [e_name]) ~@(if e_type [e_type])]
-     ~#l #k :body))
+     ~@#l #k :body))
 
 
 ;==============================================================================
