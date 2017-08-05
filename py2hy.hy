@@ -67,14 +67,18 @@
   (setv bodylist #l #k :body
         body (iter bodylist))
   (setv n (first body))
-  (setv r (if (in "Return" (bodylist.__repr__))
-            `[(defclass Py2HyReturnException [Exception]
-                (defn __init__ [self retvalue]
-                  (setv self.retvalue retvalue)))]))
+  ; (setv r (if (in "Return" (bodylist.__repr__))
+  ;           `[(defclass Py2HyReturnException [Exception]
+  ;               (defn __init__ [self retvalue]
+  ;                 (setv self.retvalue retvalue)))]))
+  (setv r `[(defclass Py2HyReturnException [Exception]
+              (defn __init__ [self retvalue]
+                (setv self.retvalue retvalue)))])
 
   ; `from __future__ import *` must be imported at the top of the file
   `(do
-     ~@(if (= 'import (first n))
+     ~@(if (and (= hy.models.HyExpression (type n))
+                (= 'import (first n)))
          `[~n ~@r]
          `[~@r ~n])
      ~@body))
@@ -139,7 +143,9 @@
                 (do
                   ~@(newliner (rest body)))
                 (except [e Py2HyReturnException]
-                  e.retvalue)))]))
+                  e.retvalue)
+                (except [e Exception]
+                  (raise e))))]))
   (if decorator_list
     `(with-decorator
        ~(Py2HyNewline)
@@ -302,7 +308,7 @@
        (do
          ~@orelse))
     `(when ~#m #k :test
-       (do ~@#l #k :body))))
+       (do ~@(newliner #l #k :body)))))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -312,7 +318,7 @@
       :col_offset (int)"
   (defn nest-with [l]
     (if (empty? l)
-      #l #k :body
+      (newliner #l #k :body)
       `[(with [~@(first l)]
              ~@(nest-with (list (drop 1 l))))]))
   (first (nest-with #l #k :items)))
@@ -332,7 +338,8 @@
       :lineno (int)
       :col_offset (int)"
   ; TODO: cause
-  `(raise ~#m #k :exc))
+  (setv exc #m #k :exc)
+  `(raise ~@(if exc [exc])))
 
 (defsyntax Try [:body :handlers :orelse :finalbody :lineno :col_offset]
   "Args:
@@ -346,7 +353,7 @@
         finalbody #l #k :finalbody)
   `(try
      (do
-       ~@#l #k :body)
+       ~@(newliner #l #k :body))
      (except [e Py2HyReturnException]
        (raise e))
      ~@#l #k :handlers
