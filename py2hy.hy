@@ -452,7 +452,7 @@
       :lineno (int)
       :col_offset (int)"
   (setv value #m #k :value)
-  `(yield ~@(if value value)))
+  `(yield ~@(if value [value])))
 
 (defsyntax YieldFrom [:value :lineno :col_offset]
   "Args:
@@ -678,7 +678,7 @@
   "Constant expression" `/)
 
 (defsyntax Mod []
-  "Constant expression" `mod)
+  "Constant expression" `%)
 
 (defsyntax Pow []
   "Constant expression" `**)
