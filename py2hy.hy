@@ -90,17 +90,22 @@
       [optional] :returns (expr?)
       :lineno (int)
       :col_offset (int)"
-  (setv body #l #k :body)
-  (if (in "Return" (body.__repr__))
-    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-       "Using a hacky implementation of `return`"
-       (try
-         (do
-           ~@#l #k :body)
-         (except [e Py2HyReturnException]
-           e.retvalue)))
-    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-       ~@#l #k :body)))
+  (setv body #l #k :body
+        decorator_list #l #k :decorator_list)
+  (setv main_body (if (in "Return" (body.__repr__))
+                    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+                       "Using a hacky implementation of `return`"
+                       (try
+                         (do
+                           ~@#l #k :body)
+                         (except [e Py2HyReturnException]
+                           e.retvalue)))
+                    `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+                       ~@#l #k :body)))
+  (if decorator_list
+    `(with-decorator ~@decorator_list
+       ~main_body)
+    main_body))
 
 (defsyntax AsyncFunctionDef [:name :args :body :decorator_list :returns :lineno :col_offset]
   "Args:
@@ -435,7 +440,8 @@
       [optional] :value (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(yield ~#m #k :value))
+  (setv value #m #k :value)
+  `(yield ~@(if value value)))
 
 (defsyntax YieldFrom [:value :lineno :col_offset]
   "Args:
@@ -847,6 +853,7 @@
 ; (setv grandlist (.visit (Py2ast) codestring))
 ; (setv a (macroexpand-1 grandlist))
 (setv codeobj (-> sys.argv (get 1) (open "r") (.read) (ast.parse)))
+; (print (ast.dump codeobj))
 (setv a (codeobj.expand))
 
 ; Modify `__repr__` to suppress `'`
