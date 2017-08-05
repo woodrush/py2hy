@@ -54,13 +54,20 @@
 (defsyntax Module [:body]
   "Args:
       [list] :body (stmt*)"
-  (setv body #l #k :body)
+  (setv bodylist #l #k :body
+        body (iter bodylist))
+  (setv n (first body))
+  (setv r (if (in "Return" (bodylist.__repr__))
+            `[(defclass Py2HyReturnException [Exception]
+                (defn __init__ [self retvalue]
+                  (setv self.retvalue retvalue)))]))
+
+  ; `from __future__ import *` must be imported at the top of the file
   `(do
-     ~@(if (in "Return" (body.__repr__))
-         `[(defclass Py2HyReturnException [Exception]
-             (defn __init__ [self retvalue]
-               (setv self.retvalue retvalue)))])
-     ~@#l #k :body))
+     ~@(if (= 'import (first n))
+         `[~n ~@r]
+         `[~@r ~n])
+     ~@body))
 
 (defsyntax Interactive [:body]
   "Args:
