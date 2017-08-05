@@ -174,7 +174,34 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  `(setv ~@(interleave #l #k :targets (repeat #m #k :value))))
+  (setv targets #l #k :targets
+        value #m #k :value
+        targettype (type (first #k :targets)))
+
+  ; Dependencies:
+  ;     ast.Tuple: assumes the form (, a b c ...)
+  ;     ast.Subscript: assumes the form (get a "b")
+  (cond
+    [(= ast.Tuple targettype)
+     (do
+       (setv target (drop 1 (first targets)))
+       (setv g (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym))))))
+       `(do
+          (setv ~g ~value)
+          (setv
+            ~@(interleave target
+                          (map
+                            (fn [t] `(nth ~(second t) ~(first t)))
+                            (enumerate (repeat g)))))))]
+    [(= ast.Subscript targettype)
+     (do
+       (setv varname (nth (first targets) 1)
+             keyname (nth (first targets) 2))
+       `(assoc ~varname ~keyname ~value))]
+    [(= ast.Name targettype)
+     `(setv ~@targets ~value)]
+    [True
+     `(setv ~@targets ~value)]))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
