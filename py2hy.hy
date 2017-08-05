@@ -21,6 +21,11 @@
                                       [True (hy.models.HySymbol x)])))
                                 ~body))))
 
+(defclass Py2HyNewline [object]
+  (defn __repr__ [self]
+    "\n"))
+(defn newliner [iter]
+  (drop-last 1 (interleave iter (repeat (Py2HyNewline)))))
 (deftag m [x]
   `(do
      (if (hasattr ~x "expand")
@@ -105,28 +110,37 @@
           ; If there are no `return` statements, don't add the `try` construct
           [(not-in "Return" (body.__repr__))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-              ~@body)]
+              ~(Py2HyNewline)
+              ~@(newliner body))]
           ; If there are no docstrings, put one
           [(!= hy.models.HyString (type (first body)))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              ~(Py2HyNewline)
               "Using a hacky implementation of `return`"
+              ~(Py2HyNewline)
               (try
                 (do
-                  ~@body)
+                  ~@(newliner body))
                 (except [e Py2HyReturnException]
                   e.retvalue)))]
           ; If there are docstrings, keep them, and append another
           [True
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              ~(Py2HyNewline)
               ~(first body)
+              ~(Py2HyNewline)
               "Using a hacky implementation of `return`"
+              ~(Py2HyNewline)
               (try
                 (do
-                  ~@(rest body))
+                  ~@(newliner (rest body)))
                 (except [e Py2HyReturnException]
                   e.retvalue)))]))
   (if decorator_list
-    `(with-decorator ~@decorator_list
+    `(with-decorator
+       ~(Py2HyNewline)
+       ~@decorator_list
+       ~(Py2HyNewline)
        ~main_body)
     main_body))
 
@@ -152,7 +166,7 @@
       :col_offset (int)"
   ; TODO: defclass
   `(defclass ~(mangle_identifier #m #k :name) [~@#l #k :bases]
-     ~@#l #k :body))
+     ~@(newliner #l #k :body)))
 
 (defsyntax Return [:value :lineno :col_offset]
   "Args:
@@ -198,6 +212,16 @@
        (setv varname (nth (first targets) 1)
              keyname (nth (first targets) 2))
        `(assoc ~varname ~keyname ~value))]
+    [(< 1 (len targets))
+     (do
+       (setv g (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym))))))
+       `(do
+          (setv ~g ~value)
+          (setv
+            ~@(interleave targets
+                          (map
+                            (fn [t] `(nth ~(second t) ~(first t)))
+                            (enumerate (repeat g)))))))]
     [(= ast.Name targettype)
      `(setv ~@targets ~value)]
     [True
@@ -231,8 +255,13 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(for [~#m #k :target ~#m #k :iter]
-     ~@#l #k :body))
+  (setv target #m #k :target)
+  `(for [~@(if (= ', (first target))
+             [`[~@(rest target)]]
+             [target])
+         ~#m #k :iter]
+     ~(Py2HyNewline)
+     ~@(newliner #l #k :body)))
 
 (defsyntax AsyncFor [:target :iter :body :orelse :lineno :col_offset]
   "Args:
@@ -810,10 +839,14 @@
       :iter (expr)
       [list] :ifs (expr*)
       :is_async (int)"
-  (setv ifs #l #k :ifs)
-  `[[~#m #k :target ~#m #k :iter]
+  (setv target #m #k :target
+        ifs #l #k :ifs)
+  `[[~@(if (= ', (first target))
+         [`[~@(rest target)]]
+         [target])
+     ~#m #k :iter]
     ~@(if (< 0 (len ifs))
-       `[(and ~@ifs)])])
+        `[(and ~@ifs)])])
 
 
 ;==============================================================================
