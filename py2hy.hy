@@ -16,7 +16,7 @@
                                       [(= int (type x)) (hy.models.HyInteger x)]
                                       [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
                                       [(= list (type x)) (hy.models.HyList x)]
-                                      [(.startswith x ":") (hy.models.HyKeyword x)]
+                                      ; [(.startswith x ":") (hy.models.HyKeyword x)]
                                       [True (hy.models.HySymbol x)])))
                                 ~body))))
 
@@ -29,7 +29,7 @@
          [(= int (type ~x)) (hy.models.HyInteger ~x)]
          [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
          [(= list (type ~x)) (hy.models.HyList ~x)]
-         [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
+         ; [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
          [True (hy.models.HySymbol ~x)]))))
 
 (defmacro defsyntax [name keys &rest body]
