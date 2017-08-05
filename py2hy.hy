@@ -234,8 +234,12 @@
       [list] :body (stmt*)
       :lineno (int)
       :col_offset (int)"
-  `(with [~@#l #k :items]
-         ~@#l #k :body))
+  (defn nest-with [l]
+    (if (empty? l)
+      #l #k :body
+      `[(with [~@(first l)]
+             ~@(nest-with (list (drop 1 l))))]))
+  (first (nest-with #l #k :items)))
 
 (defsyntax AsyncWith [:items :body :lineno :col_offset]
   "Args:
