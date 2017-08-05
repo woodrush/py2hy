@@ -271,6 +271,8 @@
   `(try
      (do
        ~@#l #k :body)
+     (except [e Py2HyReturnException]
+       (raise e))
      ~@#l #k :handlers
      ~@(if (< 0 (len orelse))
          `[(else
