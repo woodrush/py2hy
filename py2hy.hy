@@ -405,7 +405,7 @@
   "Args:
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(do))
 
 (defsyntax Break [:lineno :col_offset]
   "Args:
@@ -642,8 +642,14 @@
   ; `(do
   ;    (setv ~s ~#m #k :value)
   ;    ~a)
-  `(. ~#m #k :value ~#m #k :attr)
-  )
+  (setv value #m #k :value)
+  (cond
+    [
+     ; False
+     (= hy.models.HySymbol (type value))
+     (hy.models.HySymbol (+ (str value) "." #k :attr))]
+    [True
+     `(. ~#m #k :value ~#m #k :attr)]))
 
 (defsyntax Subscript [:value :slice :ctx :lineno :col_offset]
   "Args:
