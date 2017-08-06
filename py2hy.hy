@@ -198,9 +198,10 @@
       :col_offset (int)"
 
   (setv targets #l #k :targets)
-  (setv g (if (= 1 (len targets))
-            #m #k :value
-            (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym)))))))
+  (setv g (if (or (< 1 (len targets))
+                  (= ', (first (first targets))))
+            (hy.models.HySymbol (+ "_py2hy_anon_var_" (.join "" (drop 1 (gensym)))))
+            #m #k :value))
   (setv typedict {ast.Tuple
                   (fn [target value]
                     `(do
@@ -222,9 +223,13 @@
                   ast.Name
                   (fn [target value]
                     (setv target #m target)
-                    `(setv ~target ~value))})
+                    (if (= '_ target)
+                      `(do)
+                      `(setv ~target ~value)))})
   `(do
-     ~@(if (< 1 (len targets)) [`(setv ~g ~#m #k :value)])
+     ~@(if (or (< 1 (len targets))
+               (= ', (first (first targets))))
+         [`(setv ~g ~#m #k :value)])
      ~@(map (fn [l] ((get typedict (type (first l))) (first l) (second l)))
             (zip #k :targets
                  (repeat g)))))
