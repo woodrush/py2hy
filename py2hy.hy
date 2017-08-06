@@ -540,7 +540,7 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(yield_from ~@(if value [value])))
 
 (defsyntax Compare [:left :ops :comparators :lineno :col_offset]
   "Args:
