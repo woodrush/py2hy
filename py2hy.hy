@@ -24,11 +24,6 @@
                                       [True (hy.models.HySymbol x)])))
                                 ~body))))
 
-(defclass Py2HyNewline [object]
-  (defn __repr__ [self]
-    "\n"))
-(defn newliner [iter]
-  (drop-last 1 (interleave iter (repeat (Py2HyNewline)))))
 (deftag m [x]
   `(do
      (if (hasattr ~x "expand")
@@ -47,11 +42,12 @@
 (defmacro defsyntax [name keys &rest body]
   ; Uncomment this for checking progress
   ; (print "; Defining syntax" name "...")
-  `(setv (. (. ast ~name) expand)
+  `(do
+    (setv (. (. ast ~name) expand)
          (fn [self]
            ; Uncomment this for checking progress
            ; (print "; Expanding" '~name "...")
-           ~@body)))
+           ~@body))))
 
 (setv hy_reserved_keywords
       `[fn defn defclass])
@@ -120,37 +116,27 @@
           ; If there are no `return` statements, don't add the `try` construct
           [(not-in "Return" (body.__repr__))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-              ~(Py2HyNewline)
-              ~@(newliner body))]
+              ~@body)]
           ; If there are no docstrings, put one
           [(!= hy.models.HyString (type (first body)))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-              ~(Py2HyNewline)
-              "Using a hacky implementation of `return`"
-              ~(Py2HyNewline)
               (try
                 (do
-                  ~@(newliner body))
+                  ~@body)
                 (except [e Py2HyReturnException]
                   e.retvalue)))]
           ; If there are docstrings, keep them, and append another
           [True
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-              ~(Py2HyNewline)
               ~(first body)
-              ~(Py2HyNewline)
-              "Using a hacky implementation of `return`"
-              ~(Py2HyNewline)
               (try
                 (do
-                  ~@(newliner (rest body)))
+                  ~@(rest body))
                 (except [e Py2HyReturnException]
                   e.retvalue)))]))
   (if decorator_list
     `(with-decorator
-       ~(Py2HyNewline)
        ~@decorator_list
-       ~(Py2HyNewline)
        ~main_body)
     main_body))
 
@@ -176,7 +162,7 @@
       :col_offset (int)"
   ; TODO: defclass
   `(defclass ~(mangle_identifier #m #k :name) [~@#l #k :bases]
-     ~@(newliner #l #k :body)))
+     ~@#l #k :body))
 
 (defsyntax Return [:value :lineno :col_offset]
   "Args:
@@ -269,8 +255,7 @@
              [`[~@(rest target)]]
              [target])
          ~#m #k :iter]
-     ~(Py2HyNewline)
-     ~@(newliner #l #k :body)))
+     ~@#l #k :body))
 
 (defsyntax AsyncFor [:target :iter :body :orelse :lineno :col_offset]
   "Args:
@@ -307,7 +292,7 @@
        (do
          ~@orelse))
     `(when ~#m #k :test
-       (do ~@(newliner #l #k :body)))))
+       (do ~@#l #k :body))))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -317,7 +302,7 @@
       :col_offset (int)"
   (defn nest-with [l]
     (if (empty? l)
-      (newliner #l #k :body)
+      #l #k :body
       `[(with [~@(first l)]
              ~@(nest-with (list (drop 1 l))))]))
   (first (nest-with #l #k :items)))
@@ -352,7 +337,7 @@
         finalbody #l #k :finalbody)
   `(try
      (do
-       ~@(newliner #l #k :body))
+       ~@#l #k :body)
      (except [e Py2HyReturnException]
        (raise e))
      ~@#l #k :handlers
@@ -979,6 +964,32 @@
   `(~@(if optional_vars [optional_vars])
     ~#m #k :context_expr))
 
+(defclass Py2HyNewline [object]
+  (defn __repr__ [self]
+    "\n"))
+(defn newliner [iter]
+  (drop-last 1 (interleave iter (repeat (Py2HyNewline)))))
+(defn format-newline [l]
+  (if (= hy.models.HyExpression (type l))
+    (do
+      (setv f (first l))
+      (cond
+        [(= f 'defclass) `(defclass ~(nth l 1)
+                            ~@(newliner (map format-newline (drop 2 l))))]
+        [(= f 'defn)     `(defn ~(nth l 1)
+                            ~@(newliner (map format-newline (drop 2 l))))]
+        [(= f 'except) `(except ~@(newliner (map format-newline (drop 1 l))))]
+        [(= f 'when)   `(when   ~@(newliner (map format-newline (drop 1 l))))]
+        [(= f 'for)    `(for    ~@(newliner (map format-newline (drop 1 l))))]
+        [(= f 'if)     `(if     ~@(newliner (map format-newline (drop 1 l))))]
+        [(= f 'try) `(~@(newliner (map format-newline l)))]
+        [(= f 'do)  `(~@(newliner (map format-newline l)))]
+        [(= f 'with-decorator) `(~@(map format-newline (drop-last 1 l))
+                                    ~(Py2HyNewline)
+                                    ~(format-newline (last l)))]
+        [True `(~@(map format-newline l))]))
+    (do
+      l)))
 
 (setv parser (argparse.ArgumentParser))
 (parser.add_argument "filepath")
@@ -989,21 +1000,18 @@
   (do
     (print (ast.dump codeobj)))
   (do
-    (setv a (codeobj.expand))
-    ; Modify `__repr__` to suppress `'`
+    (setv a (-> codeobj (.expand) (format-value)))
+    ; Modify `__repr__` to suppress `'` and for escaping
     (setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
     (setv hy.models.HyInteger.__repr__ (fn [self] (+ "" (str self))))
     (setv hy.models.HyFloat.__repr__ (fn [self] (+ "" (str self))))
     (setv hy.models.HyComplex.__repr__ (fn [self] (+ "" (str self))))
-    ; Modify `__repr__` for escaping
     (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (->> self
                                                               (re.sub "\\\\" (+ "\\\\" "\\\\"))
                                                               (re.sub "\"" "\\\"")) "\"")))
     (setv hy.models.HyBytes.__repr__ (fn [self]  (.__repr__ `[~@(list-comp (int x) [x self])])))
-    ; Modify `__repr__` for escaping
     (setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
-    ; Modify `__repr__` for escaping
     (setv hy.models.HyList.__repr__ (fn [self] (+ "[" (.join " " (map (fn [x] (x.__repr__)) self)) "]")))
-    ; (setv hy.models.HyList.__repr__ (fn [self] (.join " " (map (fn [x] (x.__repr__)) self))))
-    (for [x (drop 1 a)]
-      (print x))))
+    ; Drop `do` and `Py2HyNewline`
+    (for [x (drop 2 a)]
+      (print x :end ""))))
