@@ -39,6 +39,9 @@
          ; [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
          [True (hy.models.HySymbol ~x)]))))
 
+(defn do-if-long [l]
+  (setv l (list l))
+  (if (= 1 (len l)) l `(do ~@l)))
 (defmacro defsyntax [name keys &rest body]
   ; Uncomment this for checking progress
   ; (print "; Defining syntax" name "...")
@@ -121,8 +124,7 @@
           [(!= hy.models.HyString (type (first body)))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
               (try
-                (do
-                  ~@body)
+                ~(do-if-long body)
                 (except [e Py2HyReturnException]
                   e.retvalue)))]
           ; If there are docstrings, keep them, and append another
@@ -130,8 +132,7 @@
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
               ~(first body)
               (try
-                (do
-                  ~@(rest body))
+                ~(do-if-long (rest body))
                 (except [e Py2HyReturnException]
                   e.retvalue)))]))
   (if decorator_list
@@ -192,35 +193,39 @@
             #m #k :value))
   (setv typedict {ast.Tuple
                   (fn [target value]
-                    `(do
-                       ~@(map (fn [l] ((get typedict (type (first l)))
-                                       (first l)
-                                       (second l)))
-                              (zip target.elts
-                                   (map
-                                     (fn [t] `(nth ~(second t) ~(first t)))
-                                     (enumerate (repeat value)))))))
+                    (reduce + (map (fn [l] ((get typedict (type (first l)))
+                                            (first l)
+                                            (second l)))
+                                   (zip target.elts
+                                        (map
+                                          (fn [t] `(nth ~(second t) ~(first t)))
+                                          (enumerate (repeat value)))))))
                   ast.Subscript
                   (fn [target value]
                     (setv target #m target)
-                    `(assoc ~(nth target 1) ~(nth target 2) ~value))
+                    `[(assoc ~(nth target 1) ~(nth target 2) ~value)])
                   ast.Attribute
                   (fn [target value]
                     (setv target #m target)
-                    `(setv ~target ~value))
+                    `[(setv ~target ~value)])
                   ast.Name
                   (fn [target value]
                     (setv target #m target)
                     (if (= '_ target)
-                      `(do)
-                      `(setv ~target ~value)))})
-  `(do
-     ~@(if (or (< 1 (len targets))
-               (= ', (first (first targets))))
-         [`(setv ~g ~#m #k :value)])
-     ~@(map (fn [l] ((get typedict (type (first l))) (first l) (second l)))
-            (zip #k :targets
-                 (repeat g)))))
+                      `[(do)]
+                      `[(setv ~target ~value)]))})
+  (setv ret `[~@(if (or (< 1 (len targets))
+                        (= ', (first (first targets))))
+                  [`(setv ~g ~#m #k :value)])
+              ~@(reduce +
+                        (map (fn [l] `[~@((get typedict (type (first l))) (first l) (second l))])
+                             (zip #k :targets
+                                  (repeat g))))])
+  ; Optimization
+  (setv ret `[~@(list-comp x [x ret] (not (= '(do) x)))])
+  (if (= 1 (len ret))
+    (first ret)
+    `(do ~@ret)))
 
 (defsyntax AugAssign [:target :op :value :lineno :col_offset]
   "Args:
@@ -292,7 +297,7 @@
        (do
          ~@orelse))
     `(when ~#m #k :test
-       (do ~@#l #k :body))))
+       ~@#l #k :body)))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -336,8 +341,7 @@
   (setv orelse #l #k :orelse
         finalbody #l #k :finalbody)
   `(try
-     (do
-       ~@#l #k :body)
+     ~(do-if-long #l #k :body)
      (except [e Py2HyReturnException]
        (raise e))
      ~@#l #k :handlers
@@ -979,14 +983,18 @@
         [(= f 'defn)     `(defn ~(nth l 1)
                             ~@(newliner (map format-newline (drop 2 l))))]
         [(= f 'except) `(except ~@(newliner (map format-newline (drop 1 l))))]
+        [(= f 'while)  `(while  ~@(newliner (map format-newline (drop 1 l))))]
         [(= f 'when)   `(when   ~@(newliner (map format-newline (drop 1 l))))]
         [(= f 'for)    `(for    ~@(newliner (map format-newline (drop 1 l))))]
         [(= f 'if)     `(if     ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'try) `(~@(newliner (map format-newline l)))]
-        [(= f 'do)  `(~@(newliner (map format-newline l)))]
-        [(= f 'with-decorator) `(~@(map format-newline (drop-last 1 l))
-                                    ~(Py2HyNewline)
-                                    ~(format-newline (last l)))]
+        [(= f 'with-decorator)  `(~@(newliner (map format-newline l)))]
+        [(= f 'try)             `(~@(newliner (map format-newline l)))]
+        [(= f 'do)              `(~@(newliner (map format-newline l)))]
+        ; [(= f 'with-decorator) `(with-decorator
+        ;                           ~(Py2HyNewline)
+        ;                           ~@(map format-newline (drop 1 (drop-last 1 l)))
+        ;                           ~(Py2HyNewline)
+        ;                           ~(format-newline (last l)))]
         [True `(~@(map format-newline l))]))
     (do
       l)))
@@ -1000,7 +1008,7 @@
   (do
     (print (ast.dump codeobj)))
   (do
-    (setv a (-> codeobj (.expand) (format-value)))
+    (setv a (-> codeobj (.expand) (format-newline)))
     ; Modify `__repr__` to suppress `'` and for escaping
     (setv hy.models.HySymbol.__repr__ (fn [self] (+ "" self)))
     (setv hy.models.HyInteger.__repr__ (fn [self] (+ "" (str self))))
