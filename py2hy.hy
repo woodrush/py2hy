@@ -19,6 +19,7 @@
                                       [(= complex (type x)) (hy.models.HyComplex x)]
                                       [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
                                       [(= list (type x)) (hy.models.HyList x)]
+                                      [(= bytes (type x)) (hy.models.HyBytes x)]
                                       ; [(.startswith x ":") (hy.models.HyKeyword x)]
                                       [True (hy.models.HySymbol x)])))
                                 ~body))))
@@ -39,6 +40,7 @@
          [(= complex (type ~x)) (hy.models.HyComplex ~x)]
          [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
          [(= list (type ~x)) (hy.models.HyList ~x)]
+         [(= bytes (type ~x)) (hy.models.HyBytes ~x)]
          ; [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
          [True (hy.models.HySymbol ~x)]))))
 
@@ -367,7 +369,8 @@
       [optional] :msg (expr?)
       :lineno (int)
       :col_offset (int)"
-  `(assert ~#m #k :test ~#m #k :msg))
+  (setv msg #m #k :msg)
+  `(assert ~#m #k :test ~@(if msg [msg])))
 
 (defsyntax Import [:names :lineno :col_offset]
   "Args:
@@ -611,7 +614,7 @@
       :s (bytes)
       :lineno (int)
       :col_offset (int)"
-  None)
+  `(hy.models.HyBytes ~#m #k :s))
 
 (defsyntax NameConstant [:value :lineno :col_offset]
   "Args:
@@ -996,6 +999,7 @@
     (setv hy.models.HyString.__repr__ (fn [self] (+ "\"" (->> self
                                                               (re.sub "\\\\" (+ "\\\\" "\\\\"))
                                                               (re.sub "\"" "\\\"")) "\"")))
+    (setv hy.models.HyBytes.__repr__ (fn [self]  (.__repr__ `[~@(list-comp (int x) [x self])])))
     ; Modify `__repr__` for escaping
     (setv hy.models.HyKeyword.__repr__ (fn [self] (.join "" (drop 1 self))))
     ; Modify `__repr__` for escaping
