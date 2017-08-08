@@ -2,7 +2,8 @@
         [hy.extra.reserved]
         [ast]
         [re]
-        [argparse])
+        [argparse]
+        [prettyprinter [prettyprint]])
 
 (defn expand-form [x]
   (if (hasattr x "expand")
@@ -996,37 +997,6 @@
   `(~@(if optional_vars [optional_vars])
     ~#e #k context_expr))
 
-(defclass Py2HyNewline [object]
-  (defn __repr__ [self]
-    "\n"))
-(defn newliner [iter]
-  (drop-last 1 (interleave iter (repeat (Py2HyNewline)))))
-(defn format-newline [l]
-  (cond
-    [(= hy.models.HyExpression (type l))
-     (do
-      (setv f (first l))
-      (cond
-        [(= f 'defclass) `(defclass ~(nth l 1)
-                            ~@(newliner (map format-newline (drop 2 l))))]
-        [(= f 'defn)     `(defn ~(nth l 1)
-                            ~@(newliner (map format-newline (drop 2 l))))]
-        [(= f 'except) `(except ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'while)  `(while  ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'when)   `(when   ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'for)    `(for    ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'if)     `(if     ~@(newliner (map format-newline (drop 1 l))))]
-        [(= f 'with-decorator)  `(~@(newliner (map format-newline l)))]
-        [(= f 'try)             `(~@(newliner (map format-newline l)))]
-        [(= f 'do)              `(~@(newliner (map format-newline l)))]
-        [(= f 'cond)
-         `(cond ~(Py2HyNewline)
-            ~@(newliner (map (fn [x] `[~@(newliner (map format-newline x))])
-                             (drop 1 l))))]
-        [True `(~@(map format-newline l))]))]
-    [True
-     l]))
-
 (setv parser (argparse.ArgumentParser))
 (parser.add_argument "filepath")
 (parser.add_argument "--ast" :action "store_true")
@@ -1036,26 +1006,4 @@
   (do
     (print (ast.dump codeobj)))
   (do
-    (setv a (-> codeobj (.expand) (format-newline)))
-    ; Modify `__repr__` to suppress `'` and for escaping
-    (setv hy.models.HySymbol.__repr__
-          (fn [self] (+ "" self))
-          hy.models.HyInteger.__repr__
-          (fn [self] (+ "" (str self)))
-          hy.models.HyFloat.__repr__
-          (fn [self] (+ "" (str self)))
-          hy.models.HyComplex.__repr__
-          (fn [self] (+ "" (str self)))
-          hy.models.HyKeyword.__repr__
-          (fn [self] (.join "" (drop 1 self)))
-          hy.models.HyString.__repr__
-          (fn [self] (+ "\"" (->> self
-                                  (re.sub "\\\\" (+ "\\\\" "\\\\"))
-                                  (re.sub "\"" "\\\"")) "\""))
-          hy.models.HyBytes.__repr__
-          (fn [self]  (.__repr__ `[~@(list-comp (int x) [x self])]))
-          hy.models.HyList.__repr__
-          (fn [self] (+ "[" (.join " " (map (fn [x] (x.__repr__)) self)) "]")))
-    ; Drop `do` and `Py2HyNewline`
-    (for [x (drop 2 a)]
-      (print x :end ""))))
+    (print (-> codeobj (.expand) (prettyprint)))))
