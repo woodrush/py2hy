@@ -1,4 +1,5 @@
 (import [hy]
+        [hy.extra.reserved]
         [sys]
         [ast]
         [re]
@@ -53,7 +54,9 @@
            ~@body))))
 
 (setv hy_reserved_keywords
-      `[fn defn defclass])
+      `[fn defn defclass cond]
+      ; (hy.extra.reserved.names)
+      )
 (defn mangle_identifier [x]
   (if (in x hy_reserved_keywords)
     (hy.models.HySymbol (+ x "_py2hy_mangling"))
