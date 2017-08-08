@@ -96,7 +96,6 @@
                                      (drop 1 l))
                                 "")
                         "]"))))
-       ; (setv ret (+ "[" (.join " " (map recursiveprint l)) "]"))
        (Py2HyNewline.pop-indent-stack)
        ret)]
     [(= hy.models.HySymbol (type l))

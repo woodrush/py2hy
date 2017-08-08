@@ -997,13 +997,15 @@
   `(~@(if optional_vars [optional_vars])
     ~#e #k context_expr))
 
-(setv parser (argparse.ArgumentParser))
-(parser.add_argument "filepath")
-(parser.add_argument "--ast" :action "store_true")
-(setv args (parser.parse_args))
-(setv codeobj (-> args.filepath (open "r") (.read) (ast.parse)))
-(if args.ast
+(if (= __name__ "__main__")
   (do
-    (print (ast.dump codeobj)))
-  (do
-    (print (-> codeobj (.expand) (prettyprint)))))
+    (setv parser (argparse.ArgumentParser))
+    (parser.add_argument "filepath")
+    (parser.add_argument "--ast" :action "store_true")
+    (setv args (parser.parse_args))
+    (setv codeobj (-> args.filepath (open "r") (.read) (ast.parse)))
+    (if args.ast
+      (do
+        (print (ast.dump codeobj)))
+      (do
+        (print (-> codeobj (.expand) (prettyprint)))))))
