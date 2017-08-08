@@ -41,7 +41,7 @@
 
 (defn do-if-long [l]
   (setv l (list l))
-  (if (= 1 (len l)) l `(do ~@l)))
+  (if (= 1 (len l)) (first l) `(do ~@l)))
 (defmacro defsyntax [name keys &rest body]
   ; Uncomment this for checking progress
   ; (print "; Defining syntax" name "...")
@@ -302,15 +302,29 @@
       [list] :orelse (stmt*)
       :lineno (int)
       :col_offset (int)"
-  (setv orelse #l #k :orelse)
-  (if orelse
-    `(if ~#m #k :test
-       (do
-         ~@#l #k :body)
-       (do
-         ~@orelse))
-    `(when ~#m #k :test
-       ~@#l #k :body)))
+  (setv orelseast #k :orelse
+        orelse #l orelseast
+        body #l #k :body)
+  (cond
+    [(= 'cond (first orelse))
+     `(cond
+        [~#m #k :test ~(do-if-long body)]
+        ~@(drop 1 body))]
+    [(and (-> orelseast (len) (= 1))
+          (-> orelseast (first) (type) (= ast.If)))
+     `(cond
+        [~#m #k :test ~(do-if-long #l #k :body)]
+        [~#m (. (first orelseast) test) ~(do-if-long #l (. (first orelseast) body))]
+        [True ~(do-if-long #l (. (first orelseast) orelse))])]
+    [orelse
+     `(if ~#m #k :test
+        (do
+          ~@#l #k :body)
+        (do
+          ~@orelse))]
+    [True
+     `(when ~#m #k :test
+        ~@#l #k :body)]))
 
 (defsyntax With [:items :body :lineno :col_offset]
   "Args:
@@ -987,8 +1001,9 @@
 (defn newliner [iter]
   (drop-last 1 (interleave iter (repeat (Py2HyNewline)))))
 (defn format-newline [l]
-  (if (= hy.models.HyExpression (type l))
-    (do
+  (cond
+    [(= hy.models.HyExpression (type l))
+     (do
       (setv f (first l))
       (cond
         [(= f 'defclass) `(defclass ~(nth l 1)
@@ -1003,14 +1018,18 @@
         [(= f 'with-decorator)  `(~@(newliner (map format-newline l)))]
         [(= f 'try)             `(~@(newliner (map format-newline l)))]
         [(= f 'do)              `(~@(newliner (map format-newline l)))]
+        [(= f 'cond)
+         `(cond ~(Py2HyNewline)
+            ~@(newliner (map (fn [x] `[~@(newliner (map format-newline x))])
+                             (drop 1 l))))]
         ; [(= f 'with-decorator) `(with-decorator
         ;                           ~(Py2HyNewline)
         ;                           ~@(map format-newline (drop 1 (drop-last 1 l)))
         ;                           ~(Py2HyNewline)
         ;                           ~(format-newline (last l)))]
-        [True `(~@(map format-newline l))]))
-    (do
-      l)))
+        [True `(~@(map format-newline l))]))]
+    [True
+     l]))
 
 (setv parser (argparse.ArgumentParser))
 (parser.add_argument "filepath")
