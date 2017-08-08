@@ -65,7 +65,7 @@ classdef << (Group(classname + nestedExpr('(', ')', content=argpairs))
              | Group(classname + Group(Empty())))
 datatypedef << nestedExpr('(', ')', content=argpairs)
 argpairs << delimitedList(argpair, delim=',')
-argpair << Group(argtype + argname.setParseAction(lambda s,l,t: [":" + t[0]]))
+argpair << Group(argtype + argname)
 attributeclause << (Literal("attributes").suppress()
                            + nestedExpr('(', ')', content=argpairs))
 
