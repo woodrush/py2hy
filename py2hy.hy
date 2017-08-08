@@ -116,23 +116,36 @@
         decorator_list #l #k :decorator_list)
   (setv main_body
         (cond
-          ; If there are no `return` statements, don't add the `try` construct
-          [(not-in "Return" (body.__repr__))
+          ; If there are no `return` statements in the entire body,
+          ; don't add the `try` construct
+          ; Note: - `return` statements must be recursively searched
+          ;         inside `if`, `when` statements.
+          ;       - This is a simple solution (a necessary condition) to that.
+          [(not-in "Py2HyReturnException" (.__repr__ body))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
               ~@body)]
-          ; If there are no docstrings, put one
-          [(!= hy.models.HyString (type (first body)))
+          ; Optimize tail-returns to tail expressions.
+          ; i.e. if there is only one `return` statement and it is in the tail
+          ; of the function body, optimize it as a tail expression.
+          ; Note: This cannot find `return` statements that are inside
+          ; other AST nodes such as `if`, `for`, etc.
+          [(and (not-in "Py2HyReturnException" (.__repr__ (list (drop-last 1 body))))
+                (= ast.Return (type (last #k :body))))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
-              (try
-                ~(do-if-long body)
-                (except [e Py2HyReturnException]
-                  e.retvalue)))]
-          ; If there are docstrings, keep them, and append another
-          [True
+              ~@#l (drop-last 1 #k :body)
+              ~#m (. (last #k :body) value))]
+          ; Keep docstrings
+          [(= hy.models.HyString (type (first body)))
            `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
               ~(first body)
               (try
                 ~(do-if-long (rest body))
+                (except [e Py2HyReturnException]
+                  e.retvalue)))]
+          [True
+           `(defn ~(mangle_identifier #m #k :name) ~#m #k :args
+              (try
+                ~(do-if-long body)
                 (except [e Py2HyReturnException]
                   e.retvalue)))]))
   (if decorator_list
