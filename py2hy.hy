@@ -6,39 +6,28 @@
         [argparse]
         [py2ast [Py2ast]])
 
+(deftag l [body]
+  `(hy.models.HyList (list (map expand-form ~body))))
+
+(deftag m [x]
+  `(expand-form ~x))
+
 (deftag k [key]
   `(. self ~(hy.models.HySymbol (.join "" (drop 2 key)))))
 
-(deftag l [body]
-  `(hy.models.HyList (list (map (fn [x]
-                                  (if (hasattr x "expand")
-                                    (x.expand)
-                                    (cond
-                                      [(is None x) None]
-                                      [(= int (type x)) (hy.models.HyInteger x)]
-                                      [(= float (type x)) (hy.models.HyFloat x)]
-                                      [(= complex (type x)) (hy.models.HyComplex x)]
-                                      [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
-                                      [(= list (type x)) (hy.models.HyList x)]
-                                      [(= bytes (type x)) (hy.models.HyBytes x)]
-                                      ; [(.startswith x ":") (hy.models.HyKeyword x)]
-                                      [True (hy.models.HySymbol x)])))
-                                ~body))))
-
-(deftag m [x]
-  `(do
-     (if (hasattr ~x "expand")
-       ((. ~x expand))
-       (cond
-         [(is None ~x) None]
-         [(= int (type ~x)) (hy.models.HyInteger ~x)]
-         [(= float (type ~x)) (hy.models.HyFloat ~x)]
-         [(= complex (type ~x)) (hy.models.HyComplex ~x)]
-         [(= bool (type ~x)) (hy.models.HySymbol (hy.models.HySymbol (str ~x)))]
-         [(= list (type ~x)) (hy.models.HyList ~x)]
-         [(= bytes (type ~x)) (hy.models.HyBytes ~x)]
-         ; [(.startswith ~x ":") (hy.models.HyKeyword ~x)]
-         [True (hy.models.HySymbol ~x)]))))
+(defn expand-form [x]
+  (if (hasattr x "expand")
+    (x.expand)
+    (cond
+      [(is None x) None]
+      [(= int (type x)) (hy.models.HyInteger x)]
+      [(= float (type x)) (hy.models.HyFloat x)]
+      [(= complex (type x)) (hy.models.HyComplex x)]
+      [(= bool (type x)) (hy.models.HySymbol (hy.models.HySymbol (str x)))]
+      [(= list (type x)) (hy.models.HyList x)]
+      [(= bytes (type x)) (hy.models.HyBytes x)]
+      ; [(.startswith x ":") (hy.models.HyKeyword x)]
+      [True (hy.models.HySymbol x)])))
 
 (defn do-if-long [l]
   (setv l (list l))
@@ -53,10 +42,9 @@
            ; (print "; Expanding" '~name "...")
            ~@body))))
 
+; TODO: use (hy.extra.reserved.names)
 (setv hy_reserved_keywords
-      `[fn defn defclass cond]
-      ; (hy.extra.reserved.names)
-      )
+      `[fn defn defclass cond])
 (defn mangle_identifier [x]
   (if (in x hy_reserved_keywords)
     (hy.models.HySymbol (+ x "_py2hy_mangling"))
@@ -250,8 +238,19 @@
       :value (expr)
       :lineno (int)
       :col_offset (int)"
-      ; TODO
-  `(setv ~#m #k :target (~#m #k :op ~#m #k :target ~#m #k :value)))
+  (setv op2aug {`+  `+=
+                `-  `-=
+                `*  `*=
+                `/  `/=
+                `%  `%=
+                `** `**=
+                `<< `<<=
+                `>> `>>=
+                `|  `|=
+                `^  `^=
+                `// `//=
+                `bitand `&=})
+  `(~(get op2aug #m #k :op) ~#m #k :target ~#m #k :value))
 
 (defsyntax AnnAssign [:target :annotation :value :simple :lineno :col_offset]
   "Args:
