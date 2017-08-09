@@ -54,3 +54,6 @@ wrapped in a `try` clause that catches a `Py2HyReturnException`. The `return`
 statement is replaced by a `raise` statement that raises `Py2HyReturnException`
 containing the value to be returned. `Py2HyReturnException` is defined in the
 top of the entire script when the script contains any `return` statements.
+
+## License
+All of the code is licensed under the GNU Lesser General Public License. See `LICENSE` for details.
