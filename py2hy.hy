@@ -196,12 +196,12 @@
                                             (second l)))
                                    (zip target.elts
                                         (map
-                                          (fn [t] `(nth ~(second t) ~(first t)))
+                                          (fn [t] `(get ~(second t) ~(first t)))
                                           (enumerate (repeat value)))))))
                   ast.Subscript
                   (fn [target value]
                     (setv target #e target)
-                    `[(assoc ~(nth target 1) ~(nth target 2) ~value)])
+                    `[(assoc ~(get target 1) ~(get target 2) ~value)])
                   ast.Attribute
                   (fn [target value]
                     (setv target #e target)
@@ -591,9 +591,9 @@
         (reduce (fn [x y] (if (first y)
                             (+ x y)
                             `[(~'unpack_mapping ~(second y))]))
-                (map (fn [l] [(if (nth l 0)
-                                (hy.models.HyKeyword (+ ":" (nth l 0)))
-                                None) (nth l 1)])
+                (map (fn [l] [(if (get l 0)
+                                (hy.models.HyKeyword (+ ":" (get l 0)))
+                                None) (get l 1)])
                      #l #k keywords)
                 []))))
 
