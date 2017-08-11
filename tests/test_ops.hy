@@ -24,10 +24,11 @@
      (setv oplist ~oplist)
      `(do
         ~@(map (fn [x]
-                 ((fn [astname hyop pyop]
-                    `(defn ~(hy.models.HySymbol (+ "test_" astname)) []
-                       ~~testbody))
-                  #* x))
+                 (apply
+                   (fn [astname hyop pyop]
+                     `(defn ~(hy.models.HySymbol (+ "test_" astname)) []
+                        ~~testbody))
+                   x))
                oplist))))
 
 (defoptest test_binaryops
@@ -112,13 +113,13 @@
    ["IsNot" `is-not "is not"]]
   `(do
      (assert-eqexpr-eqvalue
-       (.join " " ["5" ~pyop "4" ~pyop "3"])
+       ~(.join " " ["5" pyop "4" pyop "3"])
        `(and (~'~hyop 5 4) (~'~hyop 4 3)))
      (assert-eqexpr-eqvalue
-       (.join " " ["5" ~pyop "(4" ~pyop "3)"])
+       ~(.join " " ["5" pyop "(4" pyop "3)"])
        `(~'~hyop 5 (~'~hyop 4 3)))
      (assert-eqexpr-eqvalue
-       (.join " " ["(5" ~pyop "4)" ~pyop "3"])
+       ~(.join " " ["(5" pyop "4)" pyop "3"])
        `(~'~hyop (~'~hyop 5 4) 3))))
 
 (defoptest test_compops_list
@@ -126,7 +127,7 @@
    ["NotIn" `not-in "not in"]]
   `(do
      (assert-eqexpr-eqvalue
-       (.join " " ["5" ~pyop "[5, 3]"])
+       ~(.join " " ["5" pyop "[5, 3]"])
        `(~'~hyop 5 [5 3]))))
 
 (defn test_compops_mixed []

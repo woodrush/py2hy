@@ -12,307 +12,307 @@
 (defmacro asserteq [x y]
   `(assert (= ~x ~y)))
 
-(deftag todo [f]
+(defsharp t [f]
   `#@((pytest.mark.skip :reason "TODO")
      ~f))
 
-#todo
+#t
 (defn test_Module []
   )
 
-#todo
+#t
 (defn test_Interactive []
   )
 
-#todo
+#t
 (defn test_Expression []
   )
 
-#todo
+#t
 (defn test_Suite []
   )
 
-#todo
+#t
 (defn test_FunctionDef []
   )
 
-#todo
+#t
 (defn test_AsyncFunctionDef []
   )
 
-#todo
+#t
 (defn test_ClassDef []
   )
 
-#todo
+#t
 (defn test_Return []
   )
 
-#todo
+#t
 (defn test_Delete []
   )
 
-#todo
+#t
 (defn test_Assign []
   )
 
-#todo
+#t
 (defn test_AugAssign []
   )
 
-#todo
+#t
 (defn test_AnnAssign []
   )
 
-#todo
+#t
 (defn test_For []
   )
 
-#todo
+#t
 (defn test_AsyncFor []
   )
 
-#todo
+#t
 (defn test_While []
   )
 
-#todo
+#t
 (defn test_If []
   )
 
-#todo
+#t
 (defn test_With []
   )
 
-#todo
+#t
 (defn test_AsyncWith []
   )
 
-#todo
+#t
 (defn test_Raise []
   )
 
-#todo
+#t
 (defn test_Try []
   )
 
-#todo
+#t
 (defn test_Assert []
   )
 
-#todo
+#t
 (defn test_Import []
   )
 
-#todo
+#t
 (defn test_ImportFrom []
   )
 
-#todo
+#t
 (defn test_Global []
   )
 
-#todo
+#t
 (defn test_Nonlocal []
   )
 
-#todo
+#t
 (defn test_Expr []
   )
 
-#todo
+#t
 (defn test_Pass []
   )
 
-#todo
+#t
 (defn test_Break []
   )
 
-#todo
+#t
 (defn test_Continue []
   )
 
-#todo
+#t
 (defn test_BoolOp []
   )
 
-#todo
+#t
 (defn test_BinOp []
   )
 
-#todo
+#t
 (defn test_UnaryOp []
   )
 
-#todo
+#t
 (defn test_Lambda []
   )
 
-#todo
+#t
 (defn test_IfExp []
   )
 
-#todo
+#t
 (defn test_Dict []
   )
 
-#todo
+#t
 (defn test_Set []
   )
 
-#todo
+#t
 (defn test_ListComp []
   )
 
-#todo
+#t
 (defn test_SetComp []
   )
 
-#todo
+#t
 (defn test_DictComp []
   )
 
-#todo
+#t
 (defn test_GeneratorExp []
   )
 
-#todo
+#t
 (defn test_Await []
   )
 
-#todo
+#t
 (defn test_Yield []
   )
 
-#todo
+#t
 (defn test_YieldFrom []
   )
 
-#todo
+#t
 (defn test_Compare []
   )
 
-#todo
+#t
 (defn test_Call []
   )
 
-#todo
+#t
 (defn test_Num []
   )
 
-#todo
+#t
 (defn test_Str []
   )
 
-#todo
+#t
 (defn test_FormattedValue []
   )
 
-#todo
+#t
 (defn test_JoinedStr []
   )
 
-#todo
+#t
 (defn test_Bytes []
   )
 
-#todo
+#t
 (defn test_NameConstant []
   )
 
-#todo
+#t
 (defn test_Ellipsis []
   )
 
-#todo
+#t
 (defn test_Constant []
   )
 
-#todo
+#t
 (defn test_Attribute []
   )
 
-#todo
+#t
 (defn test_Subscript []
   )
 
-#todo
+#t
 (defn test_Starred []
   )
 
-#todo
+#t
 (defn test_Name []
   )
 
-#todo
+#t
 (defn test_List []
   )
 
-#todo
+#t
 (defn test_Tuple []
   )
 
-#todo
+#t
 (defn test_Load []
   )
 
-#todo
+#t
 (defn test_Store []
   )
 
-#todo
+#t
 (defn test_Del []
   )
 
-#todo
+#t
 (defn test_AugLoad []
   )
 
-#todo
+#t
 (defn test_AugStore []
   )
 
-#todo
+#t
 (defn test_Param []
   )
 
-#todo
+#t
 (defn test_Slice []
   )
 
-#todo
+#t
 (defn test_ExtSlice []
   )
 
-#todo
+#t
 (defn test_Index []
   )
 
-#todo
+#t
 (defn test_comprehension []
   )
 
-#todo
+#t
 (defn test_ExceptHandler []
   )
 
-#todo
+#t
 (defn test_arguments []
   )
 
-#todo
+#t
 (defn test_arg []
   )
 
-#todo
+#t
 (defn test_keyword []
   )
 
-#todo
+#t
 (defn test_alias []
   )
 
-#todo
+#t
 (defn test_withitem []
   )
 
