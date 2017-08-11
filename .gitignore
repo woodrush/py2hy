@@ -2,3 +2,6 @@ __pycache__
 /Notes
 .DS_Store
 /.cache
+/py2hy.egg-info
+*pycache*
+/dist

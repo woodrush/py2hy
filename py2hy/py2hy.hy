@@ -1024,9 +1024,9 @@
 (defn py2hy_print [ast]
   (print (-> ast (.expand) (prettyprinter))))
 
-(defn py2hy_file [filepath]
+(defn py2hy_file [filepath &optional [dumpast False]]
   (setv astobj (-> filepath (open "r") (.read) (ast.parse)))
-  (if args.ast
+  (if dumpast
       (do
         (print (ast.dump codeobj)))
       (do
@@ -1035,10 +1035,12 @@
 (defn py2hy [ast]
   (ast.expand))
 
+(defn main []
+  (setv parser (argparse.ArgumentParser))
+  (parser.add_argument "filepath")
+  (parser.add_argument "--ast" :action "store_true")
+  (setv args (parser.parse_args))
+  (py2hy_file args.filepath args.ast))
+
 (if (= __name__ "__main__")
-  (do
-    (setv parser (argparse.ArgumentParser))
-    (parser.add_argument "filepath")
-    (parser.add_argument "--ast" :action "store_true")
-    (setv args (parser.parse_args))
-    (py2hy_file args.filepath)))
+  (main))
