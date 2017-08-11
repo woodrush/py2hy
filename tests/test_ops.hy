@@ -1,5 +1,6 @@
 (import [hy]
         [ast]
+        [sys]
         [pytest]
         [py2hy.py2hy [py2hy :as py2hy_]]
         [builtins])
@@ -70,7 +71,7 @@
 
 (defoptest test_matmult
   [["MatMult" `@ "@"]]
-  `(do
+  `(when (>= sys.version_info (, 3 5))
      (assert (= (py2hy (+ "5" ~pyop "4" ~pyop "3"))
                 `(~'~hyop (~'~hyop 5 4) 3)))
      (assert (= (py2hy (+ "5" ~pyop "(4" ~pyop "3)"))

@@ -52,9 +52,10 @@
 
 (defmacro defsyntax [name keys &rest body]
   `(do
-     (setv (. (. ast ~name) expand)
-           (fn [self]
-             ~@#A body))))
+     (when (hasattr ast '~name)
+       (setv (. (. ast ~name) expand)
+             (fn [self]
+               ~@#A body)))))
 
 ;;;=============================================================================
 ;;; Classgroup `mod`
