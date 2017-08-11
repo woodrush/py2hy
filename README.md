@@ -22,15 +22,15 @@ Python 3.6.
 ## Usage
 
 ```bash
-py2hy path/to/src.hy
+py2hy src.py
 ```
 
-### Creating the Grammar Template
+### Generating the Grammar Template
 To parse the [Python AST specs](https://docs.python.org/3.6/library/ast.html)
-and create the grammar template, do
+and generate the grammar template, do
 
 ```bash
-make template  # i.e. `python parse_pygrammarspecs.py > template.hy`
+make template  # i.e. `python res/parse_pygrammarspecs.py > res/template.hy`
 ```
 
 ## How it works
@@ -46,7 +46,7 @@ The original implementation actually used Hy's macro system and
 `macroexpand-1` for the transformation. The current implementation uses the
 Python class system for an equivalent functionality and improved speed.
 
-### Parsing the Python AST Specs
+### Generating the Grammar Template
 Running the [parser](lib/parse_pygrammarspecs.py) for the
 [Python AST specs](https://docs.python.org/3.6/library/ast.html) creates a
 [template script](template.hy) to be [filled in](py2hy.hy) to create

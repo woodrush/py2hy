@@ -1,2 +1,2 @@
 template:
-	python parse_pygrammarspecs.py > template.hy
+	python res/parse_pygrammarspecs.py > res/template.hy
