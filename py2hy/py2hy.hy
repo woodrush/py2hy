@@ -5,6 +5,17 @@
         [argparse]
         [py2hy.prettyprinter [prettyprinter]])
 
+;;; Stable version Hy compatibility
+;;; For splicing None as an empty list
+(defsharp A [expr]
+  `(if (is None ~expr)
+     []
+     ~expr))
+;;; deftag -> defsharp
+(defmacro deftag [name args &rest body]
+  `(defsharp ~(hy.models.HySymbol name) ~args
+     ~@body))
+
 (defn expand-form [x]
   (if (hasattr x "expand")
     (x.expand)
@@ -20,7 +31,7 @@
 
 (defn do-if-long [l]
   (setv l (list l))
-  (if (= 1 (len l)) (first l) `(do ~@l)))
+  (if (= 1 (len l)) (first l) `(do ~@#A l)))
 
 ;;; TODO: use (hy.extra.reserved.names)
 (setv hy_reserved_keywords
@@ -43,7 +54,7 @@
   `(do
      (setv (. (. ast ~name) expand)
            (fn [self]
-             ~@body))))
+             ~@#A body))))
 
 ;;;=============================================================================
 ;;; Classgroup `mod`
@@ -61,11 +72,11 @@
 
   ; `from __future__ import *` must be imported at the top of the file
   `(do
-     ~@(if (and (= hy.models.HyExpression (type n))
+     ~@#A (if (and (= hy.models.HyExpression (type n))
                 (= 'import (first n)))
-         `[~n ~@r]
-         `[~@r ~n])
-     ~@body))
+         `[~n ~@#A r]
+         `[~@#A r ~n])
+     ~@#A body))
 
 (defsyntax Interactive [body]
   "Args:
@@ -106,7 +117,7 @@
           ;       - This is a simple solution (a necessary condition) to that.
           [(not-in "Py2HyReturnException" (.__repr__ body))
            `(defn ~(py2hy_mangle_identifier #e #k name) ~#e #k args
-              ~@body)]
+              ~@#A body)]
           ; Optimize tail-returns to tail expressions.
           ; i.e. if there is only one `return` statement and it is in the tail
           ; of the function body, optimize it as a tail expression.
@@ -116,7 +127,7 @@
                         (.__repr__ (list (drop-last 1 body))))
                 (= ast.Return (type (last #k body))))
            `(defn ~(py2hy_mangle_identifier #e #k name) ~#e #k args
-              ~@#l (drop-last 1 #k body)
+              ~@#A #l (drop-last 1 #k body)
               ~#e (. (last #k body) value))]
           ; Keep docstrings
           [(= hy.models.HyString (type (first body)))
@@ -134,7 +145,7 @@
                   e.retvalue)))]))
   (if decorator_list
     `(with-decorator
-       ~@decorator_list
+       ~@#A decorator_list
        ~main_body)
     main_body))
 
@@ -160,8 +171,8 @@
       lineno (int)
       col_offset (int)"
   ; TODO: defclass
-  `(defclass ~(py2hy_mangle_identifier #e #k name) [~@#l #k bases]
-     ~@#l #k body))
+  `(defclass ~(py2hy_mangle_identifier #e #k name) [~@#A #l #k bases]
+     ~@#A #l #k body))
 
 (defsyntax Return [value lineno col_offset]
   "Args:
@@ -175,7 +186,7 @@
       targets (expr*) [list]
       lineno (int)
       col_offset (int)"
-  `(del ~@#l #k targets))
+  `(del ~@#A #l #k targets))
 
 (defsyntax Assign [targets value lineno col_offset]
   "Args:
@@ -213,20 +224,20 @@
                     (if (= '_ target)
                       `[(do)]
                       `[(setv ~target ~value)]))})
-  (setv ret `[~@(if (or (< 1 (len targets))
+  (setv ret `[~@#A (if (or (< 1 (len targets))
                         (= ', (first (first targets))))
                   [`(setv ~g ~#e #k value)])
-              ~@(reduce +
-                        (map (fn [l] `[~@((get typedict
+              ~@#A (reduce +
+                        (map (fn [l] `[~@#A ((get typedict
                                                (type (first l)))
                                           (first l) (second l))])
                              (zip #k targets
                                   (repeat g))))])
   ; Optimization
-  (setv ret `[~@(list-comp x [x ret] (not (= '(do) x)))])
+  (setv ret `[~@#A (list-comp x [x ret] (not (= '(do) x)))])
   (if (= 1 (len ret))
     (first ret)
-    `(do ~@ret)))
+    `(do ~@#A ret)))
 
 (defsyntax AugAssign [target op value lineno col_offset]
   "Args:
@@ -268,11 +279,11 @@
       lineno (int)
       col_offset (int)"
   (setv target #e #k target)
-  `(for [~@(if (= ', (first target))
-             [`[~@(rest target)]]
+  `(for [~@#A (if (= ', (first target))
+             [`[~@#A (rest target)]]
              [target])
          ~#e #k iter]
-     ~@#l #k body))
+     ~@#A #l #k body))
 
 (defsyntax AsyncFor [target iter body orelse lineno col_offset]
   "Args:
@@ -292,7 +303,7 @@
       lineno (int)
       col_offset (int)"
   `(while ~#e #k test
-     ~@#l #k body))
+     ~@#A #l #k body))
 
 (defsyntax If [test body orelse lineno col_offset]
   "Args:
@@ -309,7 +320,7 @@
      `(cond
         [~#e #k
          test ~(do-if-long body)]
-        ~@(drop 1 body))]
+        ~@#A (drop 1 body))]
     [(and (-> orelseast (len) (= 1))
           (-> orelseast (first) (type) (= ast.If)))
      `(cond
@@ -322,12 +333,12 @@
     [orelse
      `(if ~#e #k test
         (do
-          ~@#l #k body)
+          ~@#A #l #k body)
         (do
-          ~@orelse))]
+          ~@#A orelse))]
     [True
      `(when ~#e #k test
-        ~@#l #k body)]))
+        ~@#A #l #k body)]))
 
 (defsyntax With [items body lineno col_offset]
   "Args:
@@ -338,8 +349,8 @@
   (defn nest-with [l]
     (if (empty? l)
       #l #k body
-      `[(with [~@(first l)]
-             ~@(nest-with (list (drop 1 l))))]))
+      `[(with [~@#A (first l)]
+             ~@#A (nest-with (list (drop 1 l))))]))
   (first (nest-with #l #k items)))
 
 (defsyntax AsyncWith [items body lineno col_offset]
@@ -358,7 +369,7 @@
       col_offset (int)"
   ; TODO: cause
   (setv exc #e #k exc)
-  `(raise ~@(if exc [exc])))
+  `(raise ~@#A (if exc [exc])))
 
 (defsyntax Try [body handlers orelse finalbody lineno col_offset]
   "Args:
@@ -374,13 +385,13 @@
      ~(do-if-long #l #k body)
      (except [e Py2HyReturnException]
        (raise e))
-     ~@#l #k handlers
-     ~@(if (< 0 (len orelse))
+     ~@#A #l #k handlers
+     ~@#A (if (< 0 (len orelse))
          `[(else
-            ~@orelse)])
-     ~@(if (< 0 (len finalbody))
+            ~@#A orelse)])
+     ~@#A (if (< 0 (len finalbody))
          `[(finally
-            ~@finalbody)])))
+            ~@#A finalbody)])))
 
 (defsyntax Assert [test msg lineno col_offset]
   "Args:
@@ -389,14 +400,14 @@
       lineno (int)
       col_offset (int)"
   (setv msg #e #k msg)
-  `(assert ~#e #k test ~@(if msg [msg])))
+  `(assert ~#e #k test ~@#A (if msg [msg])))
 
 (defsyntax Import [names lineno col_offset]
   "Args:
       names (alias*) [list]
       lineno (int)
       col_offset (int)"
-  `(import ~@#l #k names))
+  `(import ~@#A #l #k names))
 
 (defsyntax ImportFrom [module names level lineno col_offset]
   "Args:
@@ -405,21 +416,21 @@
       level (int?) [optional]
       lineno (int)
       col_offset (int)"
-  `(import [~#e #k module [~@(reduce + #l #k names)]]))
+  `(import [~#e #k module [~@#A (reduce + #l #k names)]]))
 
 (defsyntax Global [names lineno col_offset]
   "Args:
       names (identifier*) [list]
       lineno (int)
       col_offset (int)"
-  `(global ~@(map py2hy_mangle_identifier #l #k names)))
+  `(global ~@#A (map py2hy_mangle_identifier #l #k names)))
 
 (defsyntax Nonlocal [names lineno col_offset]
   "Args:
       names (identifier*) [list]
       lineno (int)
       col_offset (int)"
-  `(nonlocal ~@(map py2hy_mangle_identifier #l #k names)))
+  `(nonlocal ~@#A (map py2hy_mangle_identifier #l #k names)))
 
 (defsyntax Expr [value lineno col_offset]
   "Args:
@@ -456,7 +467,7 @@
       values (expr*) [list]
       lineno (int)
       col_offset (int)"
-  `(~#e #k op ~@#l #k values))
+  `(~#e #k op ~@#A #l #k values))
 
 (defsyntax BinOp [left op right lineno col_offset]
   "Args:
@@ -500,14 +511,14 @@
       values (expr*) [list]
       lineno (int)
       col_offset (int)"
-  `{~@(interleave #l #k keys #l #k values)})
+  `{~@#A (interleave #l #k keys #l #k values)})
 
 (defsyntax Set [elts lineno col_offset]
   "Args:
       elts (expr*) [list]
       lineno (int)
       col_offset (int)"
-  `(set ~@#l #k elts))
+  `(set ~@#A #l #k elts))
 
 (defsyntax ListComp [elt generators lineno col_offset]
   "Args:
@@ -516,7 +527,7 @@
       lineno (int)
       col_offset (int)"
   `(list-comp ~#e #k elt
-              ~@(reduce (fn [x y] (+ x y)) #l #k generators)))
+              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
 
 (defsyntax SetComp [elt generators lineno col_offset]
   "Args:
@@ -525,7 +536,7 @@
       lineno (int)
       col_offset (int)"
   `(set-comp ~#e #k elt
-             ~@(reduce (fn [x y] (+ x y)) #l #k generators)))
+             ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
 
 (defsyntax DictComp [key value generators lineno col_offset]
   "Args:
@@ -536,7 +547,7 @@
       col_offset (int)"
   `(dict-comp ~#e #k key
               ~#e #k value
-              ~@(reduce (fn [x y] (+ x y)) #l #k generators)))
+              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
 
 (defsyntax GeneratorExp [elt generators lineno col_offset]
   "Args:
@@ -545,7 +556,7 @@
       lineno (int)
       col_offset (int)"
   `(genexpr ~#e #k elt
-            ~@(reduce (fn [x y] (+ x y)) #l #k generators)))
+            ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
 
 (defsyntax Await [value lineno col_offset]
   "Args:
@@ -560,14 +571,14 @@
       lineno (int)
       col_offset (int)"
   (setv value #e #k value)
-  `(yield ~@(if value [value])))
+  `(yield ~@#A (if value [value])))
 
 (defsyntax YieldFrom [value lineno col_offset]
   "Args:
       value (expr)
       lineno (int)
       col_offset (int)"
-  `(yield_from ~@(if value [value])))
+  `(yield_from ~@#A (if value [value])))
 
 (defsyntax Compare [left ops comparators lineno col_offset]
   "Args:
@@ -587,7 +598,7 @@
               (+ [left] comparators)
               comparators)))
   (if (< 1 (len comparators))
-    `(and ~@resultlist)
+    `(and ~@#A resultlist)
     (first resultlist)))
 
 (defsyntax Call [func args keywords lineno col_offset]
@@ -599,8 +610,8 @@
       col_offset (int)"
   (setv keywords #l #k keywords)
   `(~#e #k func
-    ~@#l #k args
-    ~@(if keywords
+    ~@#A #l #k args
+    ~@#A (if keywords
         (reduce (fn [x y] (if (first y)
                             (+ x y)
                             `[(~'unpack_mapping ~(second y))]))
@@ -721,7 +732,7 @@
       ctx (expr_context)
       lineno (int)
       col_offset (int)"
-  `[~@#l #k elts])
+  `[~@#A #l #k elts])
 
 (defsyntax Tuple [elts ctx lineno col_offset]
   "Args:
@@ -729,7 +740,7 @@
       ctx (expr_context)
       lineno (int)
       col_offset (int)"
-  `(, ~@#l #k elts))
+  `(, ~@#A #l #k elts))
 
 
 ;;;=============================================================================
@@ -889,12 +900,12 @@
       is_async (int)"
   (setv target #e #k target
         ifs #l #k ifs)
-  `[[~@(if (= ', (first target))
-         [`[~@(rest target)]]
+  `[[~@#A (if (= ', (first target))
+         [`[~@#A (rest target)]]
          [target])
      ~#e #k iter]
-    ~@(if (< 0 (len ifs))
-        `[(and ~@ifs)])])
+    ~@#A (if (< 0 (len ifs))
+        `[(and ~@#A ifs)])])
 
 
 ;;;=============================================================================
@@ -909,12 +920,12 @@
       col_offset (int)"
   (setv e_name (py2hy_mangle_identifier #e #k name)
         e_type #e #k type)
-  `(except [~@(if e_name [e_name])
-            ~@(cond
+  `(except [~@#A (if e_name [e_name])
+            ~@#A (cond
                 [(is None e_type) None]
-                [(= ', (first e_type)) [`[~@(rest e_type)]]]
+                [(= ', (first e_type)) [`[~@#A (rest e_type)]]]
                 [True [e_type]])]
-     ~@#l #k body))
+     ~@#A #l #k body))
 
 
 ;;;=============================================================================
@@ -939,20 +950,20 @@
     (defn len [iter]
       (sum (list-comp 1 [x iter])))
     (drop (- (len l) n) l))
-  `[~@(drop-last (len defaults) args)
-    ~@(if defaults
+  `[~@#A (drop-last (len defaults) args)
+    ~@#A (if defaults
         `[&optional
-          ~@(list-comp `[~x ~y]
+          ~@#A (list-comp `[~x ~y]
                        [[x y] (zip (take-last (len defaults) args)
                                    defaults)])])
-    ~@(if kwonlyargs
+    ~@#A (if kwonlyargs
         `[&kwonly
-          ~@(drop-last (len kw_defaults) kwonlyargs)
-          ~@(list-comp `[~x ~y]
+          ~@#A (drop-last (len kw_defaults) kwonlyargs)
+          ~@#A (list-comp `[~x ~y]
                        [[x y] (zip (take-last (len kw_defaults) kwonlyargs)
                                    kw_defaults)])])
-    ~@(if kwarg `[&kwargs ~kwarg])
-    ~@(if vararg `[&rest ~vararg])])
+    ~@#A (if kwarg `[&kwargs ~kwarg])
+    ~@#A (if vararg `[&rest ~vararg])])
 
 
 ;;;=============================================================================
@@ -1007,7 +1018,7 @@
       context_expr (expr)
       optional_vars (expr?) [optional]"
   (setv optional_vars #e #k optional_vars)
-  `(~@(if optional_vars [optional_vars])
+  `(~@#A (if optional_vars [optional_vars])
     ~#e #k context_expr))
 
 (defn py2hy_print [ast]
