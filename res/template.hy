@@ -5,12 +5,12 @@
 ;==============================================================================
 (defsyntax Module [body]
   "Args:
-      [list] body (stmt*)"
+      body (stmt*) [list]"
   None)
 
 (defsyntax Interactive [body]
   "Args:
-      [list] body (stmt*)"
+      body (stmt*) [list]"
   None)
 
 (defsyntax Expression [body]
@@ -20,7 +20,7 @@
 
 (defsyntax Suite [body]
   "Args:
-      [list] body (stmt*)"
+      body (stmt*) [list]"
   None)
 
 
@@ -31,9 +31,9 @@
   "Args:
       name (identifier)
       args (arguments)
-      [list] body (stmt*)
-      [list] decorator_list (expr*)
-      [optional] returns (expr?)
+      body (stmt*) [list]
+      decorator_list (expr*) [list]
+      returns (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
@@ -42,9 +42,9 @@
   "Args:
       name (identifier)
       args (arguments)
-      [list] body (stmt*)
-      [list] decorator_list (expr*)
-      [optional] returns (expr?)
+      body (stmt*) [list]
+      decorator_list (expr*) [list]
+      returns (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
@@ -52,31 +52,31 @@
 (defsyntax ClassDef [name bases keywords body decorator_list lineno col_offset]
   "Args:
       name (identifier)
-      [list] bases (expr*)
-      [list] keywords (keyword*)
-      [list] body (stmt*)
-      [list] decorator_list (expr*)
+      bases (expr*) [list]
+      keywords (keyword*) [list]
+      body (stmt*) [list]
+      decorator_list (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Return [value lineno col_offset]
   "Args:
-      [optional] value (expr?)
+      value (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Delete [targets lineno col_offset]
   "Args:
-      [list] targets (expr*)
+      targets (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Assign [targets value lineno col_offset]
   "Args:
-      [list] targets (expr*)
+      targets (expr*) [list]
       value (expr)
       lineno (int)
       col_offset (int)"
@@ -95,7 +95,7 @@
   "Args:
       target (expr)
       annotation (expr)
-      [optional] value (expr?)
+      value (expr?) [optional]
       simple (int)
       lineno (int)
       col_offset (int)"
@@ -105,8 +105,8 @@
   "Args:
       target (expr)
       iter (expr)
-      [list] body (stmt*)
-      [list] orelse (stmt*)
+      body (stmt*) [list]
+      orelse (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -115,8 +115,8 @@
   "Args:
       target (expr)
       iter (expr)
-      [list] body (stmt*)
-      [list] orelse (stmt*)
+      body (stmt*) [list]
+      orelse (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -124,8 +124,8 @@
 (defsyntax While [test body orelse lineno col_offset]
   "Args:
       test (expr)
-      [list] body (stmt*)
-      [list] orelse (stmt*)
+      body (stmt*) [list]
+      orelse (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -133,42 +133,42 @@
 (defsyntax If [test body orelse lineno col_offset]
   "Args:
       test (expr)
-      [list] body (stmt*)
-      [list] orelse (stmt*)
+      body (stmt*) [list]
+      orelse (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax With [items body lineno col_offset]
   "Args:
-      [list] items (withitem*)
-      [list] body (stmt*)
+      items (withitem*) [list]
+      body (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax AsyncWith [items body lineno col_offset]
   "Args:
-      [list] items (withitem*)
-      [list] body (stmt*)
+      items (withitem*) [list]
+      body (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Raise [exc cause lineno col_offset]
   "Args:
-      [optional] exc (expr?)
-      [optional] cause (expr?)
+      exc (expr?) [optional]
+      cause (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Try [body handlers orelse finalbody lineno col_offset]
   "Args:
-      [list] body (stmt*)
-      [list] handlers (excepthandler*)
-      [list] orelse (stmt*)
-      [list] finalbody (stmt*)
+      body (stmt*) [list]
+      handlers (excepthandler*) [list]
+      orelse (stmt*) [list]
+      finalbody (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -176,37 +176,37 @@
 (defsyntax Assert [test msg lineno col_offset]
   "Args:
       test (expr)
-      [optional] msg (expr?)
+      msg (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Import [names lineno col_offset]
   "Args:
-      [list] names (alias*)
+      names (alias*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax ImportFrom [module names level lineno col_offset]
   "Args:
-      [optional] module (identifier?)
-      [list] names (alias*)
-      [optional] level (int?)
+      module (identifier?) [optional]
+      names (alias*) [list]
+      level (int?) [optional]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Global [names lineno col_offset]
   "Args:
-      [list] names (identifier*)
+      names (identifier*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Nonlocal [names lineno col_offset]
   "Args:
-      [list] names (identifier*)
+      names (identifier*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -243,7 +243,7 @@
 (defsyntax BoolOp [op values lineno col_offset]
   "Args:
       op (boolop)
-      [list] values (expr*)
+      values (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -284,15 +284,15 @@
 
 (defsyntax Dict [keys values lineno col_offset]
   "Args:
-      [list] keys (expr*)
-      [list] values (expr*)
+      keys (expr*) [list]
+      values (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax Set [elts lineno col_offset]
   "Args:
-      [list] elts (expr*)
+      elts (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -300,7 +300,7 @@
 (defsyntax ListComp [elt generators lineno col_offset]
   "Args:
       elt (expr)
-      [list] generators (comprehension*)
+      generators (comprehension*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -308,7 +308,7 @@
 (defsyntax SetComp [elt generators lineno col_offset]
   "Args:
       elt (expr)
-      [list] generators (comprehension*)
+      generators (comprehension*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -317,7 +317,7 @@
   "Args:
       key (expr)
       value (expr)
-      [list] generators (comprehension*)
+      generators (comprehension*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -325,7 +325,7 @@
 (defsyntax GeneratorExp [elt generators lineno col_offset]
   "Args:
       elt (expr)
-      [list] generators (comprehension*)
+      generators (comprehension*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -339,7 +339,7 @@
 
 (defsyntax Yield [value lineno col_offset]
   "Args:
-      [optional] value (expr?)
+      value (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
@@ -354,8 +354,8 @@
 (defsyntax Compare [left ops comparators lineno col_offset]
   "Args:
       left (expr)
-      [list] ops (cmpop*)
-      [list] comparators (expr*)
+      ops (cmpop*) [list]
+      comparators (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -363,8 +363,8 @@
 (defsyntax Call [func args keywords lineno col_offset]
   "Args:
       func (expr)
-      [list] args (expr*)
-      [list] keywords (keyword*)
+      args (expr*) [list]
+      keywords (keyword*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -386,15 +386,15 @@
 (defsyntax FormattedValue [value conversion format_spec lineno col_offset]
   "Args:
       value (expr)
-      [optional] conversion (int?)
-      [optional] format_spec (expr?)
+      conversion (int?) [optional]
+      format_spec (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
 
 (defsyntax JoinedStr [values lineno col_offset]
   "Args:
-      [list] values (expr*)
+      values (expr*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -462,7 +462,7 @@
 
 (defsyntax List [elts ctx lineno col_offset]
   "Args:
-      [list] elts (expr*)
+      elts (expr*) [list]
       ctx (expr_context)
       lineno (int)
       col_offset (int)"
@@ -470,7 +470,7 @@
 
 (defsyntax Tuple [elts ctx lineno col_offset]
   "Args:
-      [list] elts (expr*)
+      elts (expr*) [list]
       ctx (expr_context)
       lineno (int)
       col_offset (int)"
@@ -504,14 +504,14 @@
 ;==============================================================================
 (defsyntax Slice [lower upper step]
   "Args:
-      [optional] lower (expr?)
-      [optional] upper (expr?)
-      [optional] step (expr?)"
+      lower (expr?) [optional]
+      upper (expr?) [optional]
+      step (expr?) [optional]"
   None)
 
 (defsyntax ExtSlice [dims]
   "Args:
-      [list] dims (slice*)"
+      dims (slice*) [list]"
   None)
 
 (defsyntax Index [value]
@@ -630,7 +630,7 @@
   "Args:
       target (expr)
       iter (expr)
-      [list] ifs (expr*)
+      ifs (expr*) [list]
       is_async (int)"
   None)
 
@@ -640,9 +640,9 @@
 ;==============================================================================
 (defsyntax ExceptHandler [type name body lineno col_offset]
   "Args:
-      [optional] type (expr?)
-      [optional] name (identifier?)
-      [list] body (stmt*)
+      type (expr?) [optional]
+      name (identifier?) [optional]
+      body (stmt*) [list]
       lineno (int)
       col_offset (int)"
   None)
@@ -653,12 +653,12 @@
 ;==============================================================================
 (defsyntax arguments [args vararg kwonlyargs kw_defaults kwarg defaults]
   "Args:
-      [list] args (arg*)
-      [optional] vararg (arg?)
-      [list] kwonlyargs (arg*)
-      [list] kw_defaults (expr*)
-      [optional] kwarg (arg?)
-      [list] defaults (expr*)"
+      args (arg*) [list]
+      vararg (arg?) [optional]
+      kwonlyargs (arg*) [list]
+      kw_defaults (expr*) [list]
+      kwarg (arg?) [optional]
+      defaults (expr*) [list]"
   None)
 
 
@@ -668,7 +668,7 @@
 (defsyntax arg [arg annotation lineno col_offset]
   "Args:
       arg (identifier)
-      [optional] annotation (expr?)
+      annotation (expr?) [optional]
       lineno (int)
       col_offset (int)"
   None)
@@ -679,7 +679,7 @@
 ;==============================================================================
 (defsyntax keyword [arg value]
   "Args:
-      [optional] arg (identifier?)
+      arg (identifier?) [optional]
       value (expr)"
   None)
 
@@ -690,7 +690,7 @@
 (defsyntax alias [name asname]
   "Args:
       name (identifier)
-      [optional] asname (identifier?)"
+      asname (identifier?) [optional]"
   None)
 
 
@@ -700,7 +700,7 @@
 (defsyntax withitem [context_expr optional_vars]
   "Args:
       context_expr (expr)
-      [optional] optional_vars (expr?)"
+      optional_vars (expr?) [optional]"
   None)
 
 

@@ -83,8 +83,8 @@ parsedlist = module.parseString(data).asList()[0]
 def fprint(fname, fargs):
     keylist = map(lambda l: l[1], fargs)
     docstring = map(lambda l: l[1] + " (" + l[0] + ")"
-                              + (" [optional] " if l[0].endswith("?") else "")
-                              + (" [list] " if l[0].endswith("*") else ""), fargs)
+                              + (" [optional]" if l[0].endswith("?") else "")
+                              + (" [list]" if l[0].endswith("*") else ""), fargs)
     if len(fargs) > 0:
         print("(defsyntax " + fname + " [" + " ".join(keylist) + "]")
         print("  \"Args:")
