@@ -3,7 +3,7 @@
         [ast]
         [re]
         [argparse]
-        [prettyprinter [prettyprint]])
+        [py2hy.prettyprinter [prettyprinter]])
 
 (defn expand-form [x]
   (if (hasattr x "expand")
@@ -54,9 +54,10 @@
   (setv bodylist #l #k body
         body (iter bodylist))
   (setv n (first body))
-  (setv r `[(defclass Py2HyReturnException [Exception]
-              (defn __init__ [self retvalue]
-                (setv self.retvalue retvalue)))])
+  (setv r (if (in "Py2HyReturnException" (bodylist.__repr__))
+            `[(defclass Py2HyReturnException [Exception]
+                (defn __init__ [self retvalue]
+                  (setv self.retvalue retvalue)))]))
 
   ; `from __future__ import *` must be imported at the top of the file
   `(do
@@ -575,7 +576,19 @@
       comparators (expr*) [list]
       lineno (int)
       col_offset (int)"
-  `(~@#l #k ops ~#e #k left ~@#l #k comparators))
+  (setv ops #l #k ops
+        comparators #l #k comparators
+        left #e #k left)
+  (setv resultlist
+        (map
+         (fn [x]
+           `(~(first x) ~(second x) ~(get x 2)))
+         (zip ops
+              (+ [left] comparators)
+              comparators)))
+  (if (< 1 (len comparators))
+    `(and ~@resultlist)
+    (first resultlist)))
 
 (defsyntax Call [func args keywords lineno col_offset]
   "Args:
@@ -785,7 +798,7 @@
   "Constant expression" `*)
 
 (defsyntax MatMult []
-  "Constant expression" `matmul)
+  "Constant expression" `@)
 
 (defsyntax Div []
   "Constant expression" `/)
@@ -809,7 +822,7 @@
   "Constant expression" `^)
 
 (defsyntax BitAnd []
-  "Constant expression" `bitand)
+  "Constant expression" `&)
 
 (defsyntax FloorDiv []
   "Constant expression" `//)
@@ -819,7 +832,7 @@
 ;;; Classgroup `unaryop`
 ;;;=============================================================================
 (defsyntax Invert []
-  "Constant expression" `invert)
+  "Constant expression" `~)
 
 (defsyntax Not []
   "Constant expression" `not)
@@ -997,15 +1010,24 @@
   `(~@(if optional_vars [optional_vars])
     ~#e #k context_expr))
 
+(defn py2hy_print [ast]
+  (print (-> ast (.expand) (prettyprinter))))
+
+(defn py2hy_file [filepath]
+  (setv astobj (-> filepath (open "r") (.read) (ast.parse)))
+  (if args.ast
+      (do
+        (print (ast.dump codeobj)))
+      (do
+        (py2hy_print astobj))))
+
+(defn py2hy [ast]
+  (ast.expand))
+
 (if (= __name__ "__main__")
   (do
     (setv parser (argparse.ArgumentParser))
     (parser.add_argument "filepath")
     (parser.add_argument "--ast" :action "store_true")
     (setv args (parser.parse_args))
-    (setv codeobj (-> args.filepath (open "r") (.read) (ast.parse)))
-    (if args.ast
-      (do
-        (print (ast.dump codeobj)))
-      (do
-        (print (-> codeobj (.expand) (prettyprint)))))))
+    (py2hy_file args.filepath)))

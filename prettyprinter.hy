@@ -108,7 +108,7 @@
     [True
      (l.__repr__)]))
 
-(defn prettyprint [expr]
+(defn prettyprinter [expr]
   ; Modify `__repr__` to suppress `'` and for escaping
   (setv hy.models.HySymbol.__repr__
         (fn [self] (+ "" self))

@@ -1,3 +1,4 @@
 __pycache__
-/Notes/*
+/Notes
 .DS_Store
+/.cache
