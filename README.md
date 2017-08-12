@@ -1,5 +1,7 @@
 # py2hy
 
+[![Build Status](https://travis-ci.org/woodrush/py2hy.svg?branch=master)](https://travis-ci.org/woodrush/py2hy)
+
 py2hy is a compiler that compiles Python AST to
 [Hy](https://github.com/hylang/hy).
 

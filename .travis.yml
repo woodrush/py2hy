@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+sudo: false
+install:
+  - pip install --upgrade pytest
+  - pip install -r requirements.txt
+  - pip install -e .
+script: pytest
+cache: pip
+notifications:
+  email:
+    - woodrush924@gmail.com
