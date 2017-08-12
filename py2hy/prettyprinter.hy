@@ -1,6 +1,9 @@
 (import [hy]
         [re])
 
+(defn add [x y]
+  (+ x y))
+
 (defclass Py2HyNewline [object]
   (setv indent-stack [-1])
   (setv indent-head -1)
@@ -66,7 +69,7 @@
          (do
            (setv ret (+ "("
                         (recursiveprint (first l))
-                        (reduce +
+                        (reduce add
                                 (map (fn [x]
                                        (+
                                          (if (= Py2HyNewline (type x))
@@ -87,7 +90,7 @@
          (do
            (setv ret (+ "["
                         (recursiveprint (first l))
-                        (reduce +
+                        (reduce add
                                 (map (fn [x]
                                        (+
                                          (if (= Py2HyNewline (type x))

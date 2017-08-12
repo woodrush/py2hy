@@ -16,6 +16,9 @@
   `(defsharp ~(hy.models.HySymbol name) ~args
      ~@body))
 
+(defn add [x y]
+  (+ x y))
+
 (defn expand-form [x]
   (if (hasattr x "expand")
     (x.expand)
@@ -204,7 +207,7 @@
             #e #k value))
   (setv typedict {ast.Tuple
                   (fn [target value]
-                    (reduce + (map (fn [l] ((get typedict (type (first l)))
+                    (reduce add (map (fn [l] ((get typedict (type (first l)))
                                             (first l)
                                             (second l)))
                                    (zip target.elts
@@ -228,7 +231,7 @@
   (setv ret `[~@#A (if (or (< 1 (len targets))
                         (= ', (first (first targets))))
                   [`(setv ~g ~#e #k value)])
-              ~@#A (reduce +
+              ~@#A (reduce add
                         (map (fn [l] `[~@#A ((get typedict
                                                (type (first l)))
                                           (first l) (second l))])
@@ -417,7 +420,7 @@
       level (int?) [optional]
       lineno (int)
       col_offset (int)"
-  `(import [~#e #k module [~@#A (reduce + #l #k names)]]))
+  `(import [~#e #k module [~@#A (reduce add #l #k names)]]))
 
 (defsyntax Global [names lineno col_offset]
   "Args:
