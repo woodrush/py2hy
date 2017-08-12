@@ -73,7 +73,7 @@ attributeclause << (Literal("attributes").suppress()
 #==============================================================================
 # Parsing
 #==============================================================================
-with open("./res/pygrammarspecs.txt", 'r') as f:
+with open("./tools/pygrammarspecs.txt", 'r') as f:
     data = f.read()
 # Delete comments
 data = re.sub("--.*", "", data)

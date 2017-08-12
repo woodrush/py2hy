@@ -9,8 +9,6 @@ install:
   - pip install coveralls
   - pip install --upgrade pytest
   - pip install -r requirements.txt
-  - for f in py2hy/*.hy; do hy2py $f > "${f%.hy}.py"; done
-  - for f in py2hy/*.hy; do mv -- "$f" "${f%.hy}.hy.orig"; done
   - pip install -e .
 script:
   coverage run --source=py2hy setup.py test

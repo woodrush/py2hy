@@ -8,3 +8,4 @@ __pycache__
 /dist
 *.pyc
 .coveralls.yml
+/py2hy/*.py

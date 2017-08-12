@@ -9,12 +9,12 @@ py2hy is a compiler that compiles Python AST to
 py2hy was used to create [HyHy](https://github.com/woodrush/hy/tree/hyhy),
 the Hy language rewritten entirely in Hy.
 
-Other Working demos are available in `demo/`. 
+Other Working demos are available in [demo/](demo/). 
 
 
 ## Requirements
 
-- Python >= 3.6
+- Python >= 3.3
 - Hy == 0.13.0
 
 Currently, py2hy is based on Python 3.6's
@@ -33,8 +33,9 @@ To parse the [Python AST specs](https://docs.python.org/3.6/library/ast.html)
 and generate the grammar template, do
 
 ```bash
-make template  # i.e. `python res/parse_pygrammarspecs.py > res/template.hy`
+make template  # i.e. `python tools/parse_pygrammarspecs.py > tools/template.hy`
 ```
+
 
 ## How it works
 ### The Transformation
@@ -57,8 +58,6 @@ Running the [parser](lib/parse_pygrammarspecs.py) for the
 This tool would be useful to create a `py2hy` for different versions of the
 Python AST specs.
 
-
-## Notes
 ### The `return` statement
 At the time of writing, the `return` statement is not implemented in Hy. Here,
 `return` is implemented in a similar manner mentioned in
@@ -68,6 +67,12 @@ wrapped in a `try` clause that catches a `Py2HyReturnException`. The `return`
 statement is replaced by a `raise` statement that raises `Py2HyReturnException`
 containing the value to be returned. `Py2HyReturnException` is defined in the
 top of the entire script when the script contains any `return` statements.
+
+
+## Notes
+### Precompiling for the Travis CI Test
+Since Travis CI is currently incompatible with Hy code, py2hy precompiles all
+of its Hy portions to Python when installing.
 
 
 ## Contributing

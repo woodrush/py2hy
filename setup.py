@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-import hy
+import subprocess
+subprocess.call(['make', 'compilehy'])
 
 setup(
     name="py2hy",
@@ -15,7 +16,7 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires = ["hy==0.13.0"],
     package_data={
-        "py2hy": ["*.hy", "*.py", "__pycache__/*"],
+        "py2hy": ["*.py", "__pycache__/*"],
     },
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -41,7 +42,3 @@ setup(
         ],
     },
 )
-
-# Create binaries of *.hy files on install
-import hy
-from py2hy import py2hy, prettyprinter
