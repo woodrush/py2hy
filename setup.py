@@ -39,3 +39,7 @@ setup(
         ],
     },
 )
+
+# Create binaries of *.hy files on install
+import hy
+from py2hy import py2hy, prettyprinter
