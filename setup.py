@@ -5,7 +5,7 @@ subprocess.call(['make', 'compilehy'])
 
 setup(
     name="py2hy",
-    version="0.8.1",
+    version="0.8.0",
     description="Python to Hy compiler",
     long_description="""Compiles Python code to Hy.""",
     url="https://github.com/woodrush/py2hy",
