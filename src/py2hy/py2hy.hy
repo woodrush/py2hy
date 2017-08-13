@@ -60,6 +60,16 @@
              (fn [self]
                ~@#A body)))))
 
+(defmacro defconstantexpression [&rest transformdicts]
+  `(do
+     ~@(reduce add
+               (map (fn [transformdict]
+                      `[~@(list-comp
+                            `(defsyntax ~(hy.models.HySymbol astname) []
+                               "Constant expression" ~hysymbol)
+                            [[astname hysymbol] (transformdict.items)])])
+                    transformdicts))))
+
 ;;;=============================================================================
 ;;; Classgroup `mod`
 ;;;=============================================================================
@@ -791,107 +801,42 @@
 
 
 ;;;=============================================================================
-;;; Classgroup `boolop`
+;;; Constant expressions
 ;;;=============================================================================
-(defsyntax And []
-  "Constant expression" `and)
-
-(defsyntax Or []
-  "Constant expression" `or)
-
-
-;;;=============================================================================
-;;; Classgroup `operator`
-;;;=============================================================================
-(defsyntax Add []
-  "Constant expression" `+)
-
-(defsyntax Sub []
-  "Constant expression" `-)
-
-(defsyntax Mult []
-  "Constant expression" `*)
-
-(defsyntax MatMult []
-  "Constant expression" `@)
-
-(defsyntax Div []
-  "Constant expression" `/)
-
-(defsyntax Mod []
-  "Constant expression" `%)
-
-(defsyntax Pow []
-  "Constant expression" `**)
-
-(defsyntax LShift []
-  "Constant expression" `<<)
-
-(defsyntax RShift []
-  "Constant expression" `>>)
-
-(defsyntax BitOr []
-  "Constant expression" `|)
-
-(defsyntax BitXor []
-  "Constant expression" `^)
-
-(defsyntax BitAnd []
-  "Constant expression" `&)
-
-(defsyntax FloorDiv []
-  "Constant expression" `//)
-
-
-;;;=============================================================================
-;;; Classgroup `unaryop`
-;;;=============================================================================
-(defsyntax Invert []
-  "Constant expression" `~)
-
-(defsyntax Not []
-  "Constant expression" `not)
-
-(defsyntax UAdd []
-  "Constant expression" `+)
-
-(defsyntax USub []
-  "Constant expression" `-)
-
-
-;;;=============================================================================
-;;; Classgroup `cmpop`
-;;;=============================================================================
-(defsyntax Eq []
-  "Constant expression" `=)
-
-(defsyntax NotEq []
-  "Constant expression" `!=)
-
-(defsyntax Lt []
-  "Constant expression" `<)
-
-(defsyntax LtE []
-  "Constant expression" `<=)
-
-(defsyntax Gt []
-  "Constant expression" `>)
-
-(defsyntax GtE []
-  "Constant expression" `>=)
-
-(defsyntax Is []
-  "Constant expression" `is)
-
-(defsyntax IsNot []
-  "Constant expression" `is-not)
-
-(defsyntax In []
-  "Constant expression" `in)
-
-(defsyntax NotIn []
-  "Constant expression" `not-in)
-
+(defconstantexpression
+  ;; Classgroup `boolop`
+  {And `and
+   Or `or}
+  ;; Classgroup `operator`
+  {Add `+
+   Sub `-
+   Mult `*
+   MatMult `@
+   Div `/
+   Mod `%
+   Pow `**
+   LShift `<<
+   RShift `>>
+   BitOr `|
+   BitXor `^
+   BitAnd `&
+   FloorDiv `//}
+  ;; Classgroup `unaryop`
+  {Invert `~
+   Not `not
+   UAdd `+
+   USub `-}
+  ;; Classgroup `cmpop`
+  {Eq `=
+   NotEq `!=
+   Lt `<
+   LtE `<=
+   Gt `>
+   GtE `>=
+   Is `is
+   IsNot `is-not
+   In `in
+   NotIn `not-in})
 
 ;;;=============================================================================
 ;;; Datatype `comprehension`
