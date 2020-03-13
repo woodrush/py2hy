@@ -1,20 +1,73 @@
-(import [hy]
-        [hy.extra.reserved]
-        [ast]
-        [re]
-        [argparse]
-        [py2hy.prettyprinter [prettyprinter]])
+#! /usr/bin/env hy
+
+(import hy 
+        hy.extra.reserved
+        ast
+        re
+        argparse
+        )
+;;[.prettyprinter [prettyprinter]]
+
+;;(import [py2hy.prettyprinter :as prettyprinter])
+;;(import py2hy.prettyprinter )
+;(import prettyprinter )
+(import [hy.contrib.hy-repr [hy-repr]])
+
+
+(defmacro list-comp [el lis &optional test]
+  (lif-not
+    test
+    `(lfor
+       ~(first  lis)
+       ~(second lis)
+       ~el)
+    `(lfor
+       ~(first  lis)
+       ~(second lis)
+       :if ~test       
+       ~el
+       )))
+
+(defmacro set-comp [el lis &optional test]
+  (lif-not
+    test
+    `(sfor
+       ~(first  lis)
+       ~(second lis)
+       ~el)
+    `(sfor
+       ~(first  lis)
+       ~(second lis)
+       :if ~test       
+       ~el
+       )))
+
+
+(defmacro dict-comp [el lis &optional test]
+  (lif-not
+    test
+    `(dfor
+       ~(first  lis)
+       ~(second lis)
+       ~el)
+    `(dfor
+       ~(first  lis)
+       ~(second lis)
+       :if ~test       
+       ~el
+       )))
 
 ;;; Stable version Hy compatibility
 ;;; For splicing None as an empty list
-(defsharp A [expr]
+;;(defsharp
+(deftag  A [expr]
   `(if (is None ~expr)
      []
      ~expr))
 ;;; deftag -> defsharp
-(defmacro deftag [name args &rest body]
-  `(defsharp ~(hy.models.HySymbol name) ~args
-     ~@body))
+;; (defmacro deftag [name args &rest body]
+;;   `(defsharp ~(hy.models.HySymbol name) ~args
+;;      ~@body))
 
 (defn add [x y]
   (+ x y))
@@ -62,12 +115,19 @@
 
 (defmacro defconstantexpression [&rest transformdicts]
   `(do
-     ~@(reduce add
+     ~@(reduce (fn [x y] (+ x y))
                (map (fn [transformdict]
-                      `[~@(list-comp
+                      `[
+                        ~@(list-comp
                             `(defsyntax ~(hy.models.HySymbol astname) []
                                "Constant expression" ~hysymbol)
-                            [[astname hysymbol] (transformdict.items)])])
+                            [[astname hysymbol] (transformdict.items)])
+                        ;; ~@(lfor
+                        ;;     [astname hysymbol] (transformdict.items)
+                        ;;     `(defsyntax ~(hy.models.HySymbol astname) []
+                        ;;        "Constant expression" ~hysymbol)
+                        ;; )
+                        ])
                     transformdicts))))
 
 ;;;=============================================================================
@@ -247,8 +307,13 @@
                                           (first l) (second l))])
                              (zip #k targets
                                   (repeat g))))])
+
+  ;;(print "ret"  ret)
   ; Optimization
-  (setv ret `[~@#A (list-comp x [x ret] (not (= '(do) x)))])
+  (setv ret
+        `[~@#A (list-comp x [x ret] (not (= '(do) x)))]
+        ;;`[~@#A (lfor x ret x :if (not (= '(do) x)))]
+        )
   (if (= 1 (len ret))
     (first ret)
     `(do ~@#A ret)))
@@ -541,7 +606,12 @@
       lineno (int)
       col_offset (int)"
   `(list-comp ~#e #k elt
-              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
+              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators))
+  ;; `(lfor
+  ;;    ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)     
+  ;;    ~#e #k elt
+  ;;    )
+  )
 
 (defsyntax SetComp [elt generators lineno col_offset]
   "Args:
@@ -550,7 +620,13 @@
       lineno (int)
       col_offset (int)"
   `(set-comp ~#e #k elt
-             ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
+             ~@#A (reduce (fn [x y] (+ x y)) #l #k generators))
+  ;; `(sfor
+  ;;    ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)     
+  ;;    ~#e #k elt
+  ;;    )
+  )
+
 
 (defsyntax DictComp [key value generators lineno col_offset]
   "Args:
@@ -561,7 +637,13 @@
       col_offset (int)"
   `(dict-comp ~#e #k key
               ~#e #k value
-              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)))
+              ~@#A (reduce (fn [x y] (+ x y)) #l #k generators))
+  ;; `(dfor
+  ;;    ~@#A (reduce (fn [x y] (+ x y)) #l #k generators)
+  ;;    [~#e #k key   ~#e #k value]
+  ;;    )
+  )
+
 
 (defsyntax GeneratorExp [elt generators lineno col_offset]
   "Args:
@@ -609,7 +691,7 @@
          (fn [x]
            `(~(first x) ~(second x) ~(get x 2)))
          (zip ops
-              (+ [left] comparators)
+              (+ `(~left) comparators)
               comparators)))
   (if (< 1 (len comparators))
     `(and ~@#A resultlist)
@@ -896,21 +978,34 @@
         kwonlyargs #l #k kwonlyargs
         kw_defaults #l #k kw_defaults)
   (defn take-last [n l]
-    (defn len [iter]
-      (sum (list-comp 1 [x iter])))
+    ;;(defn len [iter] (sum (list-comp 1 [x iter])))
+    ;;(defn len [iter] (sum (lfor [x iter] 1)))
+    
     (drop (- (len l) n) l))
   `[~@#A (drop-last (len defaults) args)
     ~@#A (if defaults
         `[&optional
           ~@#A (list-comp `[~x ~y]
                        [[x y] (zip (take-last (len defaults) args)
-                                   defaults)])])
+                                   defaults)])
+          ;; ~@#A (lfor
+          ;;        [x y] (zip (take-last (len defaults) args)
+          ;;                    defaults)
+          ;;        `[~x ~y]
+          ;;              )
+          ])
     ~@#A (if kwonlyargs
         `[&kwonly
           ~@#A (drop-last (len kw_defaults) kwonlyargs)
           ~@#A (list-comp `[~x ~y]
                        [[x y] (zip (take-last (len kw_defaults) kwonlyargs)
-                                   kw_defaults)])])
+                                   kw_defaults)])
+          ;; ~@#A (lfor
+          ;;        [x y] (zip (take-last (len kw_defaults) kwonlyargs)
+          ;;                          kw_defaults)
+          ;;        `[~x ~y]
+          ;;              )
+          ])
     ~@#A (if kwarg `[&kwargs ~kwarg])
     ~@#A (if vararg `[&rest ~vararg])])
 
@@ -971,9 +1066,16 @@
     ~#e #k context_expr))
 
 (defn py2hy_print [ast]
-  (print (-> ast (.expand) (prettyprinter))))
+  ;;(print "ast1" ast)
+  ;;(print "ast2" (ast.expand))
+  ;;(print "ast3" (hy-repr (ast.expand)))
+  (print (cut (hy-repr (ast.expand)) 1 None))
+  ;;(prettyprinter.prettyprinter (ast.expand))
+  ;;(print (-> ast (.expand) (prettyprinter)))
+  )
 
 (defn py2hy_file [filepath &optional [dumpast False]]
+  ;;(print "filepath" filepath)
   (setv astobj (-> filepath (open "r") (.read) (ast.parse)))
   (if dumpast
       (do
@@ -993,3 +1095,6 @@
 
 (if (= __name__ "__main__")
   (main))
+
+
+
