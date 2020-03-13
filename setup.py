@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
-import subprocess
-subprocess.call(['make', 'compilehy'])
+#import subprocess
+#subprocess.call(['make', 'compilehy'])
 
 setup(
     name="py2hy",
-    version="0.8.0",
+    version="0.9.1",
     description="Python to Hy compiler",
     long_description="""Compiles Python code to Hy.""",
     url="https://github.com/woodrush/py2hy",
@@ -13,11 +13,17 @@ setup(
     author_email="woodrush924@gmail.com",
     license="LGPL-3",
     keywords="sample setuptools development",
-    packages=find_packages(exclude=["tests*"]),
-    install_requires = ["hy==0.13.0"],
+    platforms=['any'],
+    python_requires='>=3.6',
+    install_requires = ["hy==0.18.0"],
+    #packages=find_packages(exclude=["tests","build","tools"]),
+    packages=find_packages(exclude=["tests","old"]),
+    #packages=['py2hy'],
     package_data={
-        "py2hy": ["*.py", "__pycache__/*"],
+        "py2hy": ["*.hy"],
     },
+    test_suite='nose.collector',
+    tests_require=['nose'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -28,9 +34,6 @@ setup(
         "Programming Language :: Lisp",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Compilers",
@@ -41,4 +44,7 @@ setup(
             "py2hy=py2hy.py2hy:main",
         ],
     },
+    scripts = [
+        'scripts/py2hy.sh'
+    ]
 )
